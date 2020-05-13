@@ -2,30 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-//Macro gouvernant la taille du buffer de lecture utilisé dans bbb_lire_entree()
-#define BBB_TAILLE_BUFFER 128
-//Macro gouvernant la taille d'un argument dans bbb_decouper_entree()
-#define BBB_TAILLE_ARGUMENTS 64
-
-#define BBB_DELIMITEURS " \t\n\r\a"
-
-
-// lit l'entrée au clavier
-char* bbb_lire_entree();
-
-// divise l'entrée en arguments
-char** bbb_decouper_entree(char* entree);
-
-//boucle d'execution du shell
-void bbb_loop();
-
-int main(int argc, char const *argv[])
-{
-	//point d'entrée du programme
-	bbb_loop();
-
-	return 0;
-}
+#include "bbb.h"
 
 void bbb_loop(){
 	char* entree;
