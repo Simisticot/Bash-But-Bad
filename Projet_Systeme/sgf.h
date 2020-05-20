@@ -40,8 +40,11 @@ void formatter(Disque* disque);
 //retourne l'inode d'un fichier via son chemin absolu
 int inode_via_chemin(char* chemin, Disque disque);
 
-//retourne l'inode d'un fichier via son nom et le bloc où le rechercher (retourne -1 si le nom n'est pas dans le bloc)
-int inode_via_bloc(char* nom, int bloc, Disque disque);
+//retourne l'inode d'un fichier via son nom et l'inode du répertoire où le rechercher (retourne -1 si le nom n'est pas dans le bloc)
+int inode_via_repertoire(char* nom, int inode, Disque disque);
 
 //retourne l'inode d'un fichier si la ligne indiquée contient son nom
 int inode_si_nom_dans_ligne(char* nom, char* ligne);
+
+//retourne le contenu d'un fichier
+char* contenu_fichier(int inode, Disque disque);
