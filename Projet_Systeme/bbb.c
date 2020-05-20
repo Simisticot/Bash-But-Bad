@@ -12,7 +12,7 @@ void bbb_loop(){
 
 	while(1){
 		i=0;
-		//affichage du curseuro
+		//affichage du curseur
 		printf("[bbb]");
 
 		//on lit l'entrée
