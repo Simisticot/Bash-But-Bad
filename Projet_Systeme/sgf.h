@@ -24,6 +24,8 @@ typedef struct infoinode{
 typedef struct bloc{
 	//données du bloc
 	char donnees[SGF_TAILLE_BLOC];
+	//est-ce que le fichier est occupé 0 pour non, 1 pour oui
+	int occupe;
 } Bloc;
 
 //structure représentant un disque dur
@@ -47,4 +49,19 @@ int inode_via_repertoire(char* nom, int inode, Disque disque);
 int inode_si_nom_dans_ligne(char* nom, char* ligne);
 
 //retourne le contenu d'un fichier
-char* contenu_fichier(int inode, Disque disque);
+char* contenu_fichier(int inode, Disque* disque);
+
+//retourne l'index d'un bloc libre
+int bloc_libre(Disque* disque);
+
+//attribue un bloc au fichier indiqué
+void attribuer_bloc(int inode, int bloc, Disque* disque);
+
+//écrit le texte indiqué dans le fichier de manière destructive
+void ecrire_fichier(int inode, char* texte, Disque* disque);
+
+//ajoute le texte indiqué à la suite du fichier
+void ajouter_fichier(int inode, char* texte, Disque* disque);
+
+//efface le contenu du bloc indiqué
+void effacer_bloc(int bloc, Disque* disque);
