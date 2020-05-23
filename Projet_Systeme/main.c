@@ -8,6 +8,7 @@
 int main(int argc, char const *argv[])
 {
 	Disque disque;
+	//test
 
 	char nom[] = "home\0";
 	char chemin[] = "/home/simon/bjr.txt";
