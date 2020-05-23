@@ -10,6 +10,12 @@
 //Macro déterminant les délimiteurs utilisés pour découper une ligne d'un répertoire en champs
 #define SGF_DELIMITEURS_LIGNE_REPERTOIRE ";"
 
+//Macro déterminant la taille maximum d'une ligne dans un répertoire
+#define SGF_TAILLE_LIGNE_REPERTOIRE 259
+
+//macro déterminant la taille maximum d'un nom de fichier
+#define SGF_TAILLE_NOM_FICHIER 255
+
 //structure contenant les ionformations sur un inode
 typedef struct infoinode{
 	//les permissions sur le fichier
@@ -18,6 +24,8 @@ typedef struct infoinode{
 	int typefichier;
 	//index des blocs utilisés
 	int blocutilise[30];
+	//indique si l'inode est utilisé, 0 pour non et 1 pour oui
+	int utilise;
 } Infoinode;
 
 //structure contenant le contenu d'un bloc
@@ -40,10 +48,13 @@ typedef struct disque{
 void formatter(Disque* disque);
 
 //retourne l'inode d'un fichier via son chemin absolu
-int inode_via_chemin(char* chemin, Disque disque);
+int inode_via_chemin(char* chemin, Disque* disque);
+
+//retourne l'inode du parent du parent d'un fichier via son chemin absolu
+int inode_parent_via_chemin(char* chemin, Disque* disque);
 
 //retourne l'inode d'un fichier via son nom et l'inode du répertoire où le rechercher (retourne -1 si le nom n'est pas dans le bloc)
-int inode_via_repertoire(char* nom, int inode, Disque disque);
+int inode_via_repertoire(char* nom, int inode, Disque* disque);
 
 //retourne l'inode d'un fichier si la ligne indiquée contient son nom
 int inode_si_nom_dans_ligne(char* nom, char* ligne);
@@ -65,3 +76,9 @@ void ajouter_fichier(int inode, char* texte, Disque* disque);
 
 //efface le contenu du bloc indiqué
 void effacer_bloc(int bloc, Disque* disque);
+
+//retourne le nom d'un fichier via son chemin absolu
+char* nom_fichier_via_chemin(char* chemin);
+
+//crée un fichier via son chemin absolu
+void creer_fichier(char* chemin, Disque* disque);

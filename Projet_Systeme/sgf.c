@@ -28,9 +28,10 @@ void formatter(Disque* disque){
 }
 
 //Retourne l'inode d'un fichier à partir de son chemin absolu
-int inode_via_chemin(char* chemin, Disque disque){
+int inode_via_chemin(char* chemin, Disque* disque){
 	//entier contenant l'inode de l'étape actuelle, initialement 0 qui est l'inode de /
 	int inode;
+	inode = 0;
 	//entier dans lequel on va insérer l'inode de l'étape suivante
 	int prochain_inode;
 
@@ -61,13 +62,57 @@ int inode_via_chemin(char* chemin, Disque disque){
 		}while(etapes[curseur] != NULL);
 		//on désalloue le tableau des étapes
 		free(etapes);
+	}else{
+		inode = 0;
+	}
+	//on renvoie l'inode
+	return inode;
+}
+
+//Retourne l'inode du parent d'un fichier à partir de son chemin absolu
+int inode_parent_via_chemin(char* chemin, Disque* disque){
+	//entier contenant l'inode de l'étape actuelle, initialement 0 qui est l'inode de /
+	int inode;
+	inode = 0;
+	//entier dans lequel on va insérer l'inode de l'étape suivante
+	int prochain_inode;
+
+	//curseur marquant l'étape actuelle dans la recherche (le répertoire dans lequel on se trouve)
+	int curseur;
+	curseur = 0;
+
+	//on ne lance la recherche que si le chemin recherché n'est pas / si c'est le cas l'inode reste 0 et on le renvoie
+	if(strcmp(chemin,"/")){
+		//tableau de chaines de caractères, chacune contient un répertoire du chemin
+		char** etapes;
+		//on découpe le chemin pour obtenir une liste des noms de répertoires + nom du fichier
+		etapes = decouper(chemin, SGF_DELIMITEURS_CHEMIN);
+
+		do{
+			//on cherche le prochain inode dans le bloc courant
+			prochain_inode = inode_via_repertoire(etapes[curseur], inode, disque);
+			//si on ne trouve pas l'inode suivant on crash
+			if(prochain_inode == -1){
+				fprintf(stderr,"Inode introuvable dans le répertoire %d",inode);
+				exit(EXIT_FAILURE);
+			//si on trouve l'inode on le place dans la variable inode, on incrémente le curseur pour passer au répertoire suivant
+			}else{
+				inode = prochain_inode;
+				curseur++;
+			}
+		//on arrête la recherche lorsque le curseur atteint une chaine vide, cela signifie que l'étape actuelle est juste avant l'extrémité du chemin et que l'inode actuel est celui que l'on recherche
+		}while(etapes[curseur+1] != NULL);
+		//on désalloue le tableau des étapes
+		free(etapes);
+	}else{
+		inode = 0;
 	}
 	//on renvoie l'inode
 	return inode;
 }
 
 //retourne l'inode d'un fichier à partir de son nom et du répertoire où le chercher
-int inode_via_repertoire(char* nom, int inode, Disque disque){
+int inode_via_repertoire(char* nom, int inode, Disque* disque){
 	// entier dans lequel on insère l'inode trouvé ou -1 si on ne le trouve pas
 	int retour;
 	retour = -1;
@@ -77,7 +122,7 @@ int inode_via_repertoire(char* nom, int inode, Disque disque){
 
 	//on extrait le contenu du répertoire
 	char* contenu;
-	contenu = contenu_fichier(inode,&disque);
+	contenu = contenu_fichier(inode,disque);
 
 	//tableau de chaines de caractères 
 	char** lignes;
@@ -298,4 +343,96 @@ void effacer_bloc(int bloc, Disque* disque){
 		//pour chaque caractère on le passe à \0
 		disque->bloc[bloc].donnees[i] = '\0';
 	}	
+}
+
+//retourne le nom d'un fichier via son chemin
+char* nom_fichier_via_chemin(char* chemin){
+	//curseur pour parcourir les étapes du chemin
+	int curseur;
+	curseur = 0;
+	//tableau dans lequel on va mettre les étapes du chemin
+	char** etapes;
+	//nom du fichier
+	char* nom;
+	
+	//on découpe le chemin en étapes
+	etapes = decouper(chemin,SGF_DELIMITEURS_CHEMIN);
+
+	//tant que l'étape suivante n'est pas vide on incrémente le curseur
+	while(etapes[curseur+1] != NULL){
+		curseur++;
+	}
+
+	//on duplique la dernière étape contenant le nom du fichier
+	nom = strdup(etapes[curseur]);
+
+	//on retourne le nom
+	return nom;
+}
+
+int inode_libre(Disque* disque){
+	//curseur que l'on va utiliser pour chercher l'inode
+	int inode;
+	//initialisation à 1 car l'inode de la racine ne doit jamais être attribué
+	inode = 1;
+
+	//tant que l'inode n'est pas libre on passe au suivant
+	while(disque->inode[inode].utilise == 1){
+		inode++;
+	}
+
+	//si on dépasse le dernier inode on crash
+	if(inode > 14){
+		fprintf(stderr,"Aucun inode disponible\n");
+		exit(EXIT_FAILURE);
+	}
+
+	//on renvoie l'inode
+	return inode;
+}
+
+void creer_fichier(char* chemin, Disque* disque){
+	//inode du fichier
+	int inode;
+	//inode du parent
+	int inode_parent;
+	//ligne de répertoire contenant les informations sur le fichier
+	char ligne_fichier[SGF_TAILLE_LIGNE_REPERTOIRE];
+	//nom du fichier
+	char* nom_fichier;
+	//copie du chemin
+	char* copie_chemin;
+	//premier bloc du fichier
+	int premier_bloc;
+
+	//on copie le chemin car on va le découper de manière destructive
+	copie_chemin = strdup(chemin);
+	//on trouve un inode libre sur le disque
+	inode = inode_libre(disque);
+	//on trouve un bloc libre sur le disque pour le premier bloc
+	premier_bloc = bloc_libre(disque);
+	//on attribue le bloc libre à l'inode libre
+	attribuer_bloc(inode,premier_bloc,disque);
+	//on indique que l'inode est désormais utilisé
+	disque->inode[inode].utilise = 1;
+
+	//on coupe le nom du fichier 
+	nom_fichier = nom_fichier_via_chemin(chemin);
+
+	//si le nom est trop long on crash
+	if(strlen(nom_fichier) > SGF_TAILLE_NOM_FICHIER){
+		fprintf(stderr,"Nom de fichier trop long (255 caractères max)\n");
+		exit(EXIT_FAILURE);
+	}
+
+	//on cherche l'inode du parent à l'aide de la copie du chemin
+	inode_parent = inode_parent_via_chemin(copie_chemin,disque);
+	//on compose la ligne de données à placer dans le parent
+	sprintf(ligne_fichier,"%s;%d\n",nom_fichier,inode);
+	//on ajoute la ligne au parent
+	ajouter_fichier(inode_parent,ligne_fichier,disque); 
+
+	//on libère le nom du fichier et la copie du chemin (tous les deux alloués par strdup)
+	free(nom_fichier);
+	free(copie_chemin);
 }
