@@ -12,5 +12,11 @@ char* bbb_lire_entree();
 //divise une chaine de caractères selon les caractères fournis dans "delimiteurs"
 char** decouper(char* entree, char* delimiteurs);
 
+
 //boucle d'execution du shell
 void bbb_loop();
+
+//gerer les guillemet
+char** decouper_guillemet(char* entree, char* delimiteurs);
+char* ajout_a_la_suite(char* chaine,char* ajout);
+char* suppr_guillemet(char* chaine);

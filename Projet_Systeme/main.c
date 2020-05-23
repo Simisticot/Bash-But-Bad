@@ -7,8 +7,8 @@
 
 int main(int argc, char const *argv[])
 {
+
 	Disque disque;
-	//test
 
 	char nom[] = "home\0";
 	char chemin[] = "/home/simon/bjr.txt";
@@ -39,6 +39,8 @@ int main(int argc, char const *argv[])
 	strncpy(disque.bloc[15].donnees,"",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[6].donnees,"",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[2].donnees,"",SGF_TAILLE_BLOC);
+
+	bbb_loop(&disque);
 
 	inode = inode_via_chemin(chemin,disque);
 	printf("via chemin : %d\n", inode);
