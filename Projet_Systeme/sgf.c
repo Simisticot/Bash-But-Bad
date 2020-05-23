@@ -31,6 +31,7 @@ void formatter(Disque* disque){
 int inode_via_chemin(char* chemin, Disque disque){
 	//entier contenant l'inode de l'étape actuelle, initialement 0 qui est l'inode de /
 	int inode;
+	inode = 0;
 	//entier dans lequel on va insérer l'inode de l'étape suivante
 	int prochain_inode;
 
