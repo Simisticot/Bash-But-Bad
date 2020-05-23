@@ -19,13 +19,15 @@ void bbb_loop(){
 		entree = bbb_lire_entree();
 		
 		//on découpe l'entrée en un tableau de pointeur vers les arguments
-		arguments = bbb_decouper_entree(entree);
+		arguments = decouper(entree, BBB_DELIMITEURS);
 
 		//on affiche les arguments un à un (pour le moment)
 		while(arguments[i] != NULL){
 			printf("%s\n", arguments[i]);
 			i++;
 		}
+		free(entree);
+		free(arguments);
 	}
 }
 
@@ -86,57 +88,58 @@ char* bbb_lire_entree(){
 	}
 }
 
-char** bbb_decouper_entree(char* entree){
-	//Taille variable de la liste d'arguments
-	int taille_arguments;
-	taille_arguments = BBB_TAILLE_ARGUMENTS;
+char** decouper(char* entree, char* delimiteurs){
+	//Taille variable de la liste de découpes
+	int taille_decoupes;
+	taille_decoupes = BBB_TAILLE_DECOUPES;
 
-	//Curseur contenant la case dans laquelle stocker le prochain argument dans le tableau arguments
+	//Curseur contenant la case dans laquelle stocker la prochaine découpe dans le tableau de découpes
 	int curseur;
 	curseur = 0;
 
-	//tableau alloué dynamiquement dans lequel on va stocker des pointeurs vers les arguments
-	char** arguments;
-	arguments = malloc(taille_arguments * sizeof(char*));
+	//tableau alloué dynamiquement dans lequel on va stocker des pointeurs vers les découpes
+	char** decoupes;
+	decoupes = malloc(taille_decoupes * sizeof(char*));
 
-	//pointeur vers l'argument en cours de traitement
-	char* argument;
+	//pointeur vers la découpe en cours de traitement
+	char* decoupe;
 
 	//test de l'allocation dynamique du tableau de pointeurs
-	if(!arguments){
-		fprintf(stderr, "Erreur d'allocation de la liste d'arguments");
+	if(!decoupes){
+		fprintf(stderr, "Erreur d'allocation de la liste de découpes\n");
 		exit(EXIT_FAILURE);
 	}
 
-	//on utilise strtok pour découper notre entrée via no délimiteurs, strok retourne un pointeur vers la première chaine de caractères
-	argument = strtok(entree, BBB_DELIMITEURS);
+	//on utilise strtok pour découper notre chaine de caractères via no délimiteurs, strok retourne un pointeur vers la première chaine de caractères
+	decoupe = strtok(entree, delimiteurs);
 
-	while(argument != NULL){
+	while(decoupe != NULL){
 		//on insère le pointeur vers notre chaîne dans le tableau
-		arguments[curseur] = argument;
+		decoupes[curseur] = decoupe;
 
 		//on incrémente le curseur pour l'itération suivante
 		curseur++;
 
 		//on compare la position du curseur à la taille actuelle du tableau
-		if(curseur >= taille_arguments){
+		if(curseur >= taille_decoupes){
 			//si le curseur a atteint la taille du tableau, on augmente la taille du tableau
 			//lors de chaque extension on ajoute la taille intiale du tableau
-			taille_arguments += BBB_TAILLE_ARGUMENTS;
-			arguments = realloc(arguments, taille_arguments * sizeof(char*));
+			taille_decoupes += BBB_TAILLE_DECOUPES;
+			decoupes = realloc(decoupes, taille_decoupes * sizeof(char*));
 
 			//test de la réallocation dynamique du tableau de pointeurs
-			if(!arguments){
+			if(!decoupes){
 				fprintf(stderr, "Erreur de réallocation de la liste d'arguments\n");
+				exit(EXIT_FAILURE);
 			}
 		}
 
 		//on récupère un pointeur vers la chaine de caractères suivante
-		argument = strtok(NULL, BBB_DELIMITEURS);
+		decoupe = strtok(NULL, delimiteurs);
 	}
 	//on insère NULL à la suite de nos pointeurs pour signaler la fin de la liste
-	arguments[curseur] = NULL;
+	decoupes[curseur] = NULL;
 
-	//on renvoie le tableau d'arguments
-	return arguments;
+	//on renvoie le tableau de découpes
+	return decoupes;
 }
