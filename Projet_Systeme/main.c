@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bbb.h"
 #include "sgf.h"
+#include "bbb.h"
+
 
 int main(int argc, char const *argv[])
 {
+
 	Disque disque;
 
 	char nom[] = "bdr.txt";
@@ -47,12 +49,16 @@ int main(int argc, char const *argv[])
 	attribuer_bloc(9,28,&disque);
 
 	strncpy(disque.bloc[27].donnees,"salut :)",SGF_TAILLE_BLOC);
+
 	strncpy(disque.bloc[15].donnees,"",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[6].donnees,"",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[2].donnees,"",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[28].donnees,"aslut ; (",SGF_TAILLE_BLOC);
 
-	supprimer_fichier(chemin,&disque);
+
+	bbb_loop(&disque);
+
+
 
 	inode = inode_via_chemin(autre_chemin,&disque);
 	printf("via chemin : %d\n", inode);

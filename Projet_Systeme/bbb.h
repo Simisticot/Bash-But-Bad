@@ -12,5 +12,17 @@ char* bbb_lire_entree();
 //divise une chaine de caractères selon les caractères fournis dans "delimiteurs"
 char** decouper(char* entree, char* delimiteurs);
 
+//récupère la chaine découpée et regroupes les termes entre "" en supprimant les ""
+char** decouper_guillemet(char* entree, char* delimiteurs);
+char* ajout_a_la_suite(char* chaine,char* ajout);
+char* suppr_guillemet(char* chaine);
+
 //boucle d'execution du shell
 void bbb_loop();
+
+//execution de commande
+void bbb_execution(char** arguments, Disque* disque);
+
+//differentes commandes
+void echo(char** arguments, Disque* disque);
+
