@@ -33,10 +33,12 @@ int main(int argc, char const *argv[])
 	attribuer_bloc(12,16,&disque);
 
 	strncpy(disque.bloc[7].donnees,"bdr.txt;9\n",SGF_TAILLE_BLOC);
+	attribuer_bloc(9,28,&disque);
 	strncpy(disque.bloc[16].donnees,"bjr.txt;8",SGF_TAILLE_BLOC);
 	attribuer_bloc(8,1,&disque);
 
 	strncpy(disque.bloc[1].donnees,"salut :)",SGF_TAILLE_BLOC);
+	strncpy(disque.bloc[28].donnees,"Le texte de base",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[15].donnees,"",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[6].donnees,"",SGF_TAILLE_BLOC);
 	strncpy(disque.bloc[2].donnees,"",SGF_TAILLE_BLOC);

@@ -64,7 +64,6 @@ char** decouper_guillemet(char* entree, char* delimiteurs){
 	int posguill=0;
 	int nbmotguill;
 	int tabguil=0;
-	char* chaine;
 	int j=0;
 	char** decoupesguill;
 	decoupesguill = malloc(taille_decoupes * sizeof(char*));
@@ -73,37 +72,35 @@ char** decouper_guillemet(char* entree, char* delimiteurs){
 	for (i=0;i<curseur;i++){
 		//ouverture guillemet
 		long_chaine_actuel = strlen(decoupes[i]);
-
+		guillemet = 1;
 		if(decoupes[i][0] == '"'){ //mot avec " en début
-			guillemet = 1;
+			
 			if (decoupes[i][long_chaine_actuel-1]!= '"'){ //si on a plusieurs mots dans guillements
 			nbmotguill = 0;
 			posguill=i;
 			long_chaine = strlen(decoupes[i+1]);
 			
-			chaine = decoupes[i];
+			//chaine = decoupes[i];
 			while(decoupes[i+1][long_chaine-1] != '"'){
 				nbmotguill++;
-				chaine = ajout_a_la_suite(chaine,decoupes[i+1]);
+				decoupes[posguill] = ajout_a_la_suite(decoupes[posguill],decoupes[i+1]);
 				i++;
 				long_chaine = strlen(decoupes[i+1]);
 			}
 			nbmotguill = nbmotguill +2; //le premier et el dernier
-			chaine = ajout_a_la_suite(chaine,decoupes[i+1]);
+			decoupes[posguill] = ajout_a_la_suite(decoupes[posguill],decoupes[i+1]);
 			i++;
-
 			
 			//chaine avec ""
+			decoupesguill[tabguil] = strdup(decoupes[posguill]);
 
-				decoupesguill[tabguil]=chaine;
-				//printf("ajout motavec:%s\n",decoupesguill[tabguil]);	
-				j = j + nbmotguill;
-				tabguil++;
+			//printf("ajout motavec:%s\n",decoupesguill[tabguil]);	
+			j = j + nbmotguill;
+			tabguil++;
 
 			}else{ //un seul mot dans les guillemets
 				//ajout du mot sans les guillemets
-
-				decoupesguill[tabguil]=suppr_guillemet(decoupes[j]);
+				decoupesguill[tabguil]= strdup(suppr_guillemet(decoupes[j]));
 				//printf("ajout motavecseul:%s\n",decoupesguill[tabguil]);	
 				j++;
 				tabguil++;
@@ -111,30 +108,25 @@ char** decouper_guillemet(char* entree, char* delimiteurs){
 			}
 			
 		}else{ //mot sans guillement
-			decoupesguill[tabguil]=decoupes[j];
-				//printf("ajout motsans:%s\n",decoupes[tabguil]);
-				j++;
-				tabguil++;
+			decoupesguill[tabguil]=strdup(decoupes[j]);
+			//printf("ajout motsans:%s\n",decoupes[tabguil]);
+			j++;
+			tabguil++;
 		}
-		//mots sans "" après le dernier mot avec ""
+		
 
 	}
 	//on renvoie le tableau de découpes
-	if (guillemet == 0){
-		//printf("sansguillement\n");
-		return decoupes;
-	}else{
-		//printf("avec guillemet avec %d \n",j);
 
-		decoupesguill[j] = NULL;
-		return decoupesguill;
-	}
+	decoupesguill[j] = NULL;
+	free(decoupes);
+	return decoupesguill;
+	
 	
 }
 
+//créer la phrase compris dans les guillemets
 char* ajout_a_la_suite(char* chaine,char* ajout){
-
-	char* reponse;
 
 	int i,j,z=0;
 	int long_chaine = strlen(chaine);
@@ -150,42 +142,80 @@ char* ajout_a_la_suite(char* chaine,char* ajout){
 	if(ajout[strlen(ajout)-1]=='"'){
 		long_ajout--;
 	}
-
-	reponse = malloc((long_chaine+long_ajout) * sizeof(char));
-
+	
 	//ajout du premier mot
 	for (i;i<long_chaine;i++){
-		reponse[z]=chaine[i];
+		chaine[z] = chaine[i];
 		z++;
 	}
 
 	//ajout de l'espace
-	reponse[z]= ' ';
+	chaine[z] = ' ';
 	z++;
 
 	//ajout du deuxieme mot
 	for(j=0;j<long_ajout;j++){
-		reponse[z] = ajout[j];
+		chaine[z] = ajout[j];
 		z++;
 		
 	}
-	reponse[z] = '\0';
-	return reponse;
+
+	chaine[z] = '\0';
+	return chaine;
 }
 
-char* suppr_guillemet(char* chaine){
+char* suppr_guillemet(char* chaine){ //supprime les guillemets entourant un mot ex:"test"
 	int i,z=0;
-	char* reponse;
-	reponse = malloc((strlen(chaine)-2) * sizeof(char));
 
+	//on décale chaque caractère a gauche pour supprimer le "
+	//on s'arrete avant le dernier "
 	for(i=1;i<strlen(chaine)-1;i++){
-		reponse[z] = chaine[i];
+		chaine[z] = chaine[i];
 		z++;
 	}
+	//on supprime les caractères qui suivent
+	chaine[z] = '\0';
+	chaine[z+1] = '\0';
 
-	return reponse;
+	return chaine;
 }
 
+void cat(char** arguments,Disque* disque){
+	//verif
+	if (arguments[1] != NULL && arguments[2] == NULL){
+		//afficher contenu fichier
+		int inode = inode_via_chemin(arguments[1],*disque);
+		//test
+		//ecrire_fichier(inode,"Bonjour et bienvenue sur \nle fichier",disque);
+		
+		char* contenu = contenu_fichier(inode,disque);
+		printf("%s\n",contenu);
+		free(contenu);
+	}else if (arguments[2] != NULL && strcmp(arguments[2],">") == 0 && arguments[3] != NULL) {
+		int inodesrc = inode_via_chemin(arguments[1],*disque);
+		int inodedest = inode_via_chemin(arguments[3],*disque);
+
+		//recup le contenu du fichier src
+		char* contenusrc = contenu_fichier(inodesrc,disque);
+		printf("contenu source:%s\n",contenusrc);
+
+		//test cat
+		//char* contenudest = contenu_fichier(inodedest,disque);
+		//printf("contenu dest avant cat:%s\n",contenudest);
+
+		//copie le contneu dans le fichier dest
+		ecrire_fichier(inodedest,contenusrc,disque);
+
+		//test cat
+		//contenudest = contenu_fichier(inodedest,disque);
+		//printf("contenu dest:%s\n",contenudest);
+		//free(contenudest);
+
+		free(contenusrc);
+	}else{
+		printf("Mauvaise utilisation de cat\n");
+	}
+}
 
 void echo(char** arguments,Disque* disque){
 
@@ -193,7 +223,9 @@ void echo(char** arguments,Disque* disque){
 	//commande a 2 arguments
 	if (arguments[1] != NULL && arguments[2] == NULL){
 		printf("%s\n",arguments[1]);
-	} else if(arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL)
+
+	} //ecriture dans un fichier
+	else if(arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL)
 	{
 
 		int inode = 0;
@@ -213,15 +245,14 @@ void echo(char** arguments,Disque* disque){
 	
 }
 
-void bbb_execution(char** arguments,Disque* disque){
-
+void bbb_execution(char** arguments,Disque* disque)
+{
 		//fonction echo
 	if (strcmp(arguments[0],"echo") == 0){
 		echo(arguments,disque);
-	}
-
-	
-	
+	} else if (strcmp(arguments[0],"cat") == 0){
+		cat(arguments,disque);
+	}	
 }
 
 
@@ -253,6 +284,11 @@ void bbb_loop(Disque* disque){
 		
 
 		free(entree);
+		i=0;
+		while(arguments[i]!=NULL){
+			free(arguments[i]);
+			i++;
+		}
 		free(arguments);
 	}
 }
