@@ -245,14 +245,18 @@ void echo(char** arguments,Disque* disque){
 	
 }
 
-void bbb_execution(char** arguments,Disque* disque)
+void bbb_execution(char** arguments,int* position,Disque* disque)
 {
 		//fonction echo
 	if (strcmp(arguments[0],"echo") == 0){
 		echo(arguments,disque);
+		//fonction cat
 	} else if (strcmp(arguments[0],"cat") == 0){
 		cat(arguments,disque);
-	}	
+		//fonction cd
+	}else if (strcmp(arguments[0],"cd") == 0){
+		cd(arguments, position, disque);
+	}
 }
 
 
@@ -260,6 +264,8 @@ void bbb_loop(Disque* disque){
 	char* entree;
 	char** arguments;
 	int i;
+	int position;
+	position = 0;
 	
 
 	while(1){
@@ -280,9 +286,9 @@ void bbb_loop(Disque* disque){
 		}
 
 		//execution de la commande
-		bbb_execution(arguments,disque);
+		bbb_execution(arguments,&position,disque);
 		
-
+		printf("position actuelle : %d\n",position);
 		free(entree);
 		i=0;
 		while(arguments[i]!=NULL){
@@ -404,4 +410,15 @@ char** decouper(char* entree, char* delimiteurs){
 
 	//on renvoie le tableau de découpes
 	return decoupes;
+}
+
+//déplace la position actuelle dans le sgf
+void cd(char** arguments, int* position, Disque* disque){
+	// si il n'y a pas de second argument on retourne à la racine
+	if(arguments[1] == NULL){
+		*position = 0;
+	//sinon on déplace la position actuelle vers le repertoire indiqué par le chemin
+	}else{
+		*position = inode_via_chemin(arguments[1],disque);
+	}
 }

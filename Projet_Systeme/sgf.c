@@ -532,5 +532,4 @@ void retirer_ligne_repertoire(char* nom_fichier, int inode_repertoire, Disque* d
 	//on libère le contenu et les lignes
 	free(contenu_repo);
 	free(lignes_repo);
-
 }
