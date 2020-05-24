@@ -151,7 +151,7 @@ char* ajout_a_la_suite(char* chaine,char* ajout){
 		long_ajout--;
 	}
 
-	reponse = malloc((long_chaine+long_ajout-1) * sizeof(char));
+	reponse = malloc((long_chaine+long_ajout) * sizeof(char));
 
 	//ajout du premier mot
 	for (i;i<long_chaine;i++){
@@ -169,6 +169,7 @@ char* ajout_a_la_suite(char* chaine,char* ajout){
 		z++;
 		
 	}
+	reponse[z] = '\0';
 	return reponse;
 }
 
@@ -189,7 +190,10 @@ char* suppr_guillemet(char* chaine){
 void echo(char** arguments,Disque* disque){
 
 	//verif
-	if(arguments[1]!= NULL && arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL)
+	//commande a 2 arguments
+	if (arguments[1] != NULL && arguments[2] == NULL){
+		printf("%s\n",arguments[1]);
+	} else if(arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL)
 	{
 
 		int inode = 0;
