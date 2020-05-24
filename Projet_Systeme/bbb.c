@@ -184,7 +184,7 @@ void cat(char** arguments,Disque* disque){
 	//verif
 	if (arguments[1] != NULL && arguments[2] == NULL){
 		//afficher contenu fichier
-		int inode = inode_via_chemin(arguments[1],*disque);
+		int inode = inode_via_chemin(arguments[1],disque);
 		//test
 		//ecrire_fichier(inode,"Bonjour et bienvenue sur \nle fichier",disque);
 		
@@ -192,8 +192,8 @@ void cat(char** arguments,Disque* disque){
 		printf("%s\n",contenu);
 		free(contenu);
 	}else if (arguments[2] != NULL && strcmp(arguments[2],">") == 0 && arguments[3] != NULL) {
-		int inodesrc = inode_via_chemin(arguments[1],*disque);
-		int inodedest = inode_via_chemin(arguments[3],*disque);
+		int inodesrc = inode_via_chemin(arguments[1],disque);
+		int inodedest = inode_via_chemin(arguments[3],disque);
 
 		//recup le contenu du fichier src
 		char* contenusrc = contenu_fichier(inodesrc,disque);
@@ -229,7 +229,7 @@ void echo(char** arguments,Disque* disque){
 	{
 
 		int inode = 0;
-		inode = inode_via_chemin(arguments[3],*disque);
+		inode = inode_via_chemin(arguments[3],disque);
 		//printf("inode= %d\n",inode);
 		char* contenuavant = contenu_fichier(inode,disque);
 		ecrire_fichier(inode,arguments[1],disque);
