@@ -80,5 +80,14 @@ void effacer_bloc(int bloc, Disque* disque);
 //retourne le nom d'un fichier via son chemin absolu
 char* nom_fichier_via_chemin(char* chemin);
 
-//crée un fichier via son chemin absolu
-void creer_fichier(char* chemin, Disque* disque);
+//crée un fichier via son chemin absolu et retourne son inode
+int creer_fichier(char* chemin, Disque* disque);
+
+//retire la ligne d'un répertoire qui contient le nom de fichier indiqué, dans le répertoire à l'inode indiqué
+void retirer_ligne_repertoire(char* nom_fichier, int inode_repertoire, Disque* disque);
+
+//efface le contenu d'un fichier
+void effacer_fichier(int inode, Disque* disque);
+
+//supprime un fichier via son chemin absolu
+void supprimer_fichier(char* chemin, Disque* disque);
