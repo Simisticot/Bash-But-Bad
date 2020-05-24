@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bbb.h"
 #include "sgf.h"
+#include "bbb.h"
 
 
 char** decouper_guillemet(char* entree, char* delimiteurs){
@@ -121,10 +121,10 @@ char** decouper_guillemet(char* entree, char* delimiteurs){
 	}
 	//on renvoie le tableau de découpes
 	if (guillemet == 0){
-		printf("sansguillement\n");
+		//printf("sansguillement\n");
 		return decoupes;
 	}else{
-		printf("avec guillemet avec %d \n",j);
+		//printf("avec guillemet avec %d \n",j);
 
 		decoupesguill[j] = NULL;
 		return decoupesguill;
@@ -189,15 +189,22 @@ char* suppr_guillemet(char* chaine){
 void echo(char** arguments,Disque* disque){
 
 	//verif
-	if (strcmp(arguments[2],">") == 0){
+	if(arguments[1]!= NULL && arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL)
+	{
+
 		int inode = 0;
 		inode = inode_via_chemin(arguments[3],*disque);
-		printf("inode= %d\n",inode);
+		//printf("inode= %d\n",inode);
 		char* contenuavant = contenu_fichier(inode,disque);
 		ecrire_fichier(inode,arguments[1],disque);
 		char* contenuapres = contenu_fichier(inode,disque);
 		printf("avant:%s\n",contenuavant);
 		printf("après:%s\n",contenuapres);
+
+		free(contenuavant);
+		free(contenuapres);
+	}else{
+		printf("Mauvaise utilisation de echo\n");
 	}
 	
 }

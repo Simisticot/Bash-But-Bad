@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bbb.h"
 #include "sgf.h"
+#include "bbb.h"
+
 
 int main(int argc, char const *argv[])
 {
