@@ -23,8 +23,15 @@ void bbb_loop(Disque* disque);
 //execution de commande
 void bbb_execution(char** arguments,int* position, Disque* disque);
 
+//affiche les noms des fichiers contenus dans un répertoire via l'inode du répertoire
+void afficher_noms(int inode_repertoire, Disque* disque);
+
 //differentes commandes
 //commande echo
-void echo(char** arguments, Disque* disque);
+void echo(char** arguments, int position, Disque* disque);
 //commande cd
 void cd(char** arguments, int* position, Disque* disque);
+//commande ls
+void ls(char** arguments, int position, Disque* disque);
+//commande cat
+void cat(char** arguments, int position,Disque* disque);

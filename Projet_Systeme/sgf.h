@@ -47,11 +47,11 @@ typedef struct disque{
 //formatte le disque
 void formatter(Disque* disque);
 
-//retourne l'inode d'un fichier via son chemin absolu
-int inode_via_chemin(char* chemin, Disque* disque);
+//retourne l'inode d'un fichier via son chemin
+int inode_via_chemin(char* chemin, int position_courante, Disque* disque);
 
-//retourne l'inode du parent du parent d'un fichier via son chemin absolu
-int inode_parent_via_chemin(char* chemin, Disque* disque);
+//retourne l'inode du parent du parent d'un fichier via son chemin 
+int inode_parent_via_chemin(char* chemin, int position_courante, Disque* disque);
 
 //retourne l'inode d'un fichier via son nom et l'inode du répertoire où le rechercher (retourne -1 si le nom n'est pas dans le bloc)
 int inode_via_repertoire(char* nom, int inode, Disque* disque);
@@ -77,11 +77,11 @@ void ajouter_fichier(int inode, char* texte, Disque* disque);
 //efface le contenu du bloc indiqué
 void effacer_bloc(int bloc, Disque* disque);
 
-//retourne le nom d'un fichier via son chemin absolu
+//retourne le nom d'un fichier via son chemin
 char* nom_fichier_via_chemin(char* chemin);
 
-//crée un fichier via son chemin absolu et retourne son inode
-int creer_fichier(char* chemin, Disque* disque);
+//crée un fichier via son chemin et retourne son inode
+int creer_fichier(char* chemin, int position_courante, Disque* disque);
 
 //retire la ligne d'un répertoire qui contient le nom de fichier indiqué, dans le répertoire à l'inode indiqué
 void retirer_ligne_repertoire(char* nom_fichier, int inode_repertoire, Disque* disque);
@@ -89,5 +89,5 @@ void retirer_ligne_repertoire(char* nom_fichier, int inode_repertoire, Disque* d
 //efface le contenu d'un fichier
 void effacer_fichier(int inode, Disque* disque);
 
-//supprime un fichier via son chemin absolu
-void supprimer_fichier(char* chemin, Disque* disque);
+//supprime un fichier via son chemin
+void supprimer_fichier(char* chemin,int position_courante, Disque* disque);

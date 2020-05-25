@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
 
 
 
-	inode = inode_via_chemin(autre_chemin,&disque);
+	inode = inode_via_chemin(autre_chemin, 0,&disque);
 	printf("via chemin : %d\n", inode);
 
 	contenu = contenu_fichier(inode,&disque);
