@@ -81,12 +81,15 @@ int inode_parent_via_chemin(char* chemin, Disque* disque){
 	int curseur;
 	curseur = 0;
 
+	char** etapes;
+	//on découpe le chemin pour obtenir une liste des noms de répertoires + nom du fichier
+	etapes = decouper(chemin, SGF_DELIMITEURS_CHEMIN);
+
 	//on ne lance la recherche que si le chemin recherché n'est pas / si c'est le cas l'inode reste 0 et on le renvoie
-	if(strcmp(chemin,"/")){
+	if(etapes[1] != NULL){
 		//tableau de chaines de caractères, chacune contient un répertoire du chemin
-		char** etapes;
-		//on découpe le chemin pour obtenir une liste des noms de répertoires + nom du fichier
-		etapes = decouper(chemin, SGF_DELIMITEURS_CHEMIN);
+		
+		
 
 		do{
 			//on cherche le prochain inode dans le bloc courant
@@ -103,10 +106,11 @@ int inode_parent_via_chemin(char* chemin, Disque* disque){
 		//on arrête la recherche lorsque le curseur atteint une chaine vide, cela signifie que l'étape actuelle est juste avant l'extrémité du chemin et que l'inode actuel est celui que l'on recherche
 		}while(etapes[curseur+1] != NULL);
 		//on désalloue le tableau des étapes
-		free(etapes);
+		
 	}else{
 		inode = 0;
 	}
+	free(etapes);
 	//on renvoie l'inode
 	return inode;
 }
@@ -489,6 +493,7 @@ void supprimer_fichier(char* chemin, Disque* disque){
 	//on libère le premier bloc et l'inode
 	disque->bloc[disque->inode[inode].blocutilise[0]].occupe = 0;
 	disque->inode[inode].utilise = 0;
+	disque->inode[inode].blocutilise[0] = -1;
 	//on retire le fichier du répertoire parent
 	retirer_ligne_repertoire(nom_fichier,inode_parent,disque);
 

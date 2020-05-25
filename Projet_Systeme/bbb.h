@@ -25,4 +25,6 @@ void bbb_execution(char** arguments, Disque* disque);
 
 //differentes commandes
 void echo(char** arguments, Disque* disque);
-
+void cat(char** arguments,Disque* disque);
+void cp(char** arguments,Disque* disque);
+void mv(char** arguments,Disque* disque);
