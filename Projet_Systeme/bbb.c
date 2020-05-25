@@ -182,12 +182,12 @@ char* suppr_guillemet(char* chaine){
 }
 
 
-void cat(char** arguments,Disque* disque){
+void cat(char** arguments, int position,Disque* disque){
 
 	//verif
 	if (arguments[1] != NULL && arguments[2] == NULL){
 		//afficher contenu fichier
-		int inode = inode_via_chemin(arguments[1],disque);
+		int inode = inode_via_chemin(arguments[1], position, disque);
 		//test
 		//ecrire_fichier(inode,"Bonjour et bienvenue sur \nle fichier",disque);
 		
@@ -195,8 +195,8 @@ void cat(char** arguments,Disque* disque){
 		printf("%s\n",contenu);
 		free(contenu);
 	}else if (arguments[2] != NULL && strcmp(arguments[2],">") == 0 && arguments[3] != NULL) {
-		int inodesrc = inode_via_chemin(arguments[1],disque);
-		int inodedest = inode_via_chemin(arguments[3],disque);
+		int inodesrc = inode_via_chemin(arguments[1], position, disque);
+		int inodedest = inode_via_chemin(arguments[3], position, disque);
 
 		//recup le contenu du fichier src
 		char* contenusrc = contenu_fichier(inodesrc,disque);
@@ -220,7 +220,7 @@ void cat(char** arguments,Disque* disque){
 	}
 }
 
-void echo(char** arguments,Disque* disque){
+void echo(char** arguments, int position, Disque* disque){
 
 	//verif
 	//commande a 2 arguments
@@ -232,7 +232,7 @@ void echo(char** arguments,Disque* disque){
 	{
 
 		int inode = 0;
-		inode = inode_via_chemin(arguments[3],disque);
+		inode = inode_via_chemin(arguments[3], position,disque);
 		//printf("inode= %d\n",inode);
 		char* contenuavant = contenu_fichier(inode,disque);
 		ecrire_fichier(inode,arguments[1],disque);
@@ -246,6 +246,26 @@ void echo(char** arguments,Disque* disque){
 		printf("Mauvaise utilisation de echo\n");
 	}
 	
+}
+
+void bbb_execution(char** arguments,int* position,Disque* disque)
+{
+		//fonction echo
+	if (strcmp(arguments[0],"echo") == 0){
+		echo(arguments, *position, disque);
+		//fonction cat
+	} else if (strcmp(arguments[0],"cat") == 0){
+		cat(arguments, *position, disque);
+		//fonction cd
+	}else if (strcmp(arguments[0],"cd") == 0){
+		cd(arguments, position, disque);
+	}else if (strcmp(arguments[0],"ls") == 0){
+		ls(arguments,*position,disque);
+  }else if (strcmp(arguments[0],"cp") == 0){
+		cp(arguments,disque);
+	}else if (strcmp(arguments[0],"mv") == 0){
+		mv(arguments,disque);
+  }
 }
 
 void cp(char** arguments,Disque* disque){
@@ -336,22 +356,6 @@ void mv(char** arguments,Disque* disque){
 		free(copie_chemin_nom);
 		free(copie_chemin_src);
 		
-	}
-
-}
-
-void bbb_execution(char** arguments,Disque* disque)
-{
-		//fonction echo
-	if (strcmp(arguments[0],"echo") == 0){
-		echo(arguments,disque);
-	}else if (strcmp(arguments[0],"cat") == 0){
-		cat(arguments,disque);
-	}else if (strcmp(arguments[0],"cp") == 0){
-		cp(arguments,disque);
-	}else if (strcmp(arguments[0],"mv") == 0){
-		mv(arguments,disque);
-	}
 }
 
 
@@ -359,6 +363,8 @@ void bbb_loop(Disque* disque){
 	char* entree;
 	char** arguments;
 	int i;
+	int position;
+	position = 0;
 	
 
 	while(1){
@@ -372,16 +378,15 @@ void bbb_loop(Disque* disque){
 		//on découpe l'entrée en un tableau de pointeur vers les arguments
 		arguments = decouper_guillemet(entree, BBB_DELIMITEURS);
 
-		//on affiche les arguments un à un (pour le moment)
+		/*on affiche les arguments un à un (lors de tests)
 		while(arguments[i] != NULL){
 			printf("%s\n", arguments[i]);
 			i++;
-		}
+		}*/
 
 		//execution de la commande
-		bbb_execution(arguments,disque);
+		bbb_execution(arguments,&position,disque);
 		
-
 		free(entree);
 		i=0;
 		while(arguments[i]!=NULL){
@@ -503,4 +508,60 @@ char** decouper(char* entree, char* delimiteurs){
 
 	//on renvoie le tableau de découpes
 	return decoupes;
+}
+
+//déplace la position actuelle dans le sgf
+void cd(char** arguments, int* position, Disque* disque){
+	// si il n'y a pas de second argument on retourne à la racine
+	if(arguments[1] == NULL){
+		*position = 0;
+	//sinon on déplace la position actuelle vers le repertoire indiqué par le chemin
+	}else{
+		*position = inode_via_chemin(arguments[1], *position, disque);
+	}
+}
+
+//affiche les fichiers contenus dans le répertoire courant ou dans le répertoire au chemin donné
+void ls(char** arguments, int position, Disque* disque){
+	//inode du répertoire indiqué
+	int inode;
+	//si on n'a pas de chemin on affiche le contenu du répertoire courant
+	if(arguments[1] == NULL){
+		afficher_noms(position,disque);
+	//si on on a un chemin on affiche le contenu du répertoire indiqué
+	}else{
+		inode = inode_via_chemin(arguments[1],position,disque);
+		afficher_noms(inode,disque);
+	}
+}
+
+//affiche les noms des fichiers contenus dans un répertoire séparés par un espace
+void afficher_noms(int inode_repertoire, Disque* disque){
+	//curseur pour parcourir les lignes
+	int i;
+	//contenu du répertoire
+	char* contenu;
+	//lignes du répertoire
+	char** lignes;
+	//champs de chaque ligne
+	char** donnees;
+	i=0;
+	//on extrait le contenu du répertoire
+	contenu = contenu_fichier(inode_repertoire,disque);
+	//on découpe le contenu en lignes
+	lignes = decouper(contenu,SGF_DELIMITEURS_REPERTOIRE);
+	
+	//on découpe chaque ligne en champs et on affiche le premier champ qui contient le nom
+	while(lignes[i] != NULL){
+		donnees = decouper(lignes[i],SGF_DELIMITEURS_LIGNE_REPERTOIRE);
+		printf("%s ",donnees[0]);
+		free(donnees);
+		i++;
+	}
+	//on libère le contenu et les lignes
+	free(contenu);
+	free(lignes);
+
+	//on termine la ligne sur l'affichage
+	printf("\n");
 }

@@ -27,8 +27,8 @@ void formatter(Disque* disque){
 	}
 }
 
-//Retourne l'inode d'un fichier à partir de son chemin absolu
-int inode_via_chemin(char* chemin, Disque* disque){
+//Retourne l'inode d'un fichier à partir de son chemin
+int inode_via_chemin(char* chemin, int position_courante, Disque* disque){
 	//entier contenant l'inode de l'étape actuelle, initialement 0 qui est l'inode de /
 	int inode;
 	inode = 0;
@@ -48,7 +48,11 @@ int inode_via_chemin(char* chemin, Disque* disque){
 
 		do{
 			//on cherche le prochain inode dans le bloc courant
-			prochain_inode = inode_via_repertoire(etapes[curseur], inode, disque);
+			if(!strcmp(etapes[curseur],".")){
+				prochain_inode = position_courante;
+			}else{
+				prochain_inode = inode_via_repertoire(etapes[curseur], inode, disque);
+			}
 			//si on ne trouve pas l'inode suivant on crash
 			if(prochain_inode == -1){
 				fprintf(stderr,"Inode introuvable dans le répertoire %d",inode);
@@ -69,8 +73,8 @@ int inode_via_chemin(char* chemin, Disque* disque){
 	return inode;
 }
 
-//Retourne l'inode du parent d'un fichier à partir de son chemin absolu
-int inode_parent_via_chemin(char* chemin, Disque* disque){
+//Retourne l'inode du parent d'un fichier à partir de son chemin
+int inode_parent_via_chemin(char* chemin, int position_courante, Disque* disque){
 	//entier contenant l'inode de l'étape actuelle, initialement 0 qui est l'inode de /
 	int inode;
 	inode = 0;
@@ -93,7 +97,11 @@ int inode_parent_via_chemin(char* chemin, Disque* disque){
 
 		do{
 			//on cherche le prochain inode dans le bloc courant
-			prochain_inode = inode_via_repertoire(etapes[curseur], inode, disque);
+			if(!strcmp(etapes[curseur],".")){
+				prochain_inode = position_courante;
+			}else{
+				prochain_inode = inode_via_repertoire(etapes[curseur], inode, disque);
+			}
 			//si on ne trouve pas l'inode suivant on crash
 			if(prochain_inode == -1){
 				fprintf(stderr,"Inode introuvable dans le répertoire %d",inode);
@@ -399,7 +407,7 @@ int inode_libre(Disque* disque){
 }
 
 //crée un fichier et retourne son inode
-int creer_fichier(char* chemin, Disque* disque){
+int creer_fichier(char* chemin, int position_courante, Disque* disque){
 	//inode du fichier
 	int inode;
 	//inode du parent
@@ -434,7 +442,7 @@ int creer_fichier(char* chemin, Disque* disque){
 	}
 
 	//on cherche l'inode du parent à l'aide de la copie du chemin
-	inode_parent = inode_parent_via_chemin(copie_chemin,disque);
+	inode_parent = inode_parent_via_chemin(copie_chemin, position_courante,disque);
 	//on compose la ligne de données à placer dans le parent
 	sprintf(ligne_fichier,"%s;%d\n",nom_fichier,inode);
 	//on ajoute la ligne au parent
@@ -469,7 +477,7 @@ void effacer_fichier(int inode, Disque* disque){
 }
 
 //supprimer un fichier via son chemin
-void supprimer_fichier(char* chemin, Disque* disque){
+void supprimer_fichier(char* chemin, int position_courante, Disque* disque){
 	//inode du fichier
 	int inode;
 	//nom du fichier
@@ -485,9 +493,9 @@ void supprimer_fichier(char* chemin, Disque* disque){
 	copie_chemin_inode_parent = strdup(chemin);
 
 	//on recherche les infos nécessaires via les trois exemplaires du chemin
-	inode = inode_via_chemin(chemin,disque);
+	inode = inode_via_chemin(chemin, position_courante, disque);
 	nom_fichier = nom_fichier_via_chemin(copie_chemin_nom_fichier);
-	inode_parent = inode_parent_via_chemin(copie_chemin_inode_parent,disque);
+	inode_parent = inode_parent_via_chemin(copie_chemin_inode_parent, position_courante,disque);
 	//on efface le contenu du fichier
 	effacer_fichier(inode,disque);
 	//on libère le premier bloc et l'inode
@@ -537,5 +545,4 @@ void retirer_ligne_repertoire(char* nom_fichier, int inode_repertoire, Disque* d
 	//on libère le contenu et les lignes
 	free(contenu_repo);
 	free(lignes_repo);
-
 }

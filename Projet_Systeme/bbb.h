@@ -18,13 +18,24 @@ char* ajout_a_la_suite(char* chaine,char* ajout);
 char* suppr_guillemet(char* chaine);
 
 //boucle d'execution du shell
-void bbb_loop();
+void bbb_loop(Disque* disque);
 
 //execution de commande
-void bbb_execution(char** arguments, Disque* disque);
+void bbb_execution(char** arguments,int* position, Disque* disque);
+
+//affiche les noms des fichiers contenus dans un répertoire via l'inode du répertoire
+void afficher_noms(int inode_repertoire, Disque* disque);
 
 //differentes commandes
-void echo(char** arguments, Disque* disque);
-void cat(char** arguments,Disque* disque);
+//commande echo
+void echo(char** arguments, int position, Disque* disque);
+//commande cd
+void cd(char** arguments, int* position, Disque* disque);
+//commande ls
+void ls(char** arguments, int position, Disque* disque);
+//commande cat
+void cat(char** arguments, int position,Disque* disque);
+
 void cp(char** arguments,Disque* disque);
+
 void mv(char** arguments,Disque* disque);
