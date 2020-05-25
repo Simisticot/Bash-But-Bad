@@ -200,7 +200,6 @@ void cat(char** arguments, int position,Disque* disque){
 
 		//recup le contenu du fichier src
 		char* contenusrc = contenu_fichier(inodesrc,disque);
-		printf("contenu source:%s\n",contenusrc);
 
 		//test cat
 		//char* contenudest = contenu_fichier(inodedest,disque);
@@ -237,8 +236,6 @@ void echo(char** arguments, int position, Disque* disque){
 		char* contenuavant = contenu_fichier(inode,disque);
 		ecrire_fichier(inode,arguments[1],disque);
 		char* contenuapres = contenu_fichier(inode,disque);
-		printf("avant:%s\n",contenuavant);
-		printf("après:%s\n",contenuapres);
 
 		free(contenuavant);
 		free(contenuapres);
@@ -288,7 +285,6 @@ void cp(char** arguments, int position, Disque* disque){
 			//recup contenu du fichier src
 			int inodesrc = inode_via_chemin(arguments[1], position, disque);
 			char* contenu = contenu_fichier(inodesrc,disque);
-			printf("source:%s\n",contenu);
 
 			//creation du fichier destination
 			int inodedest = creer_fichier(arguments[2], position, disque);
@@ -296,7 +292,6 @@ void cp(char** arguments, int position, Disque* disque){
 			ecrire_fichier(inodedest,contenu,disque);
 
 			char* contenudest = contenu_fichier(inodedest,disque);
-			printf("dest:%s\n",contenudest);
 			free(contenudest);
 
 			free(contenu);
@@ -393,6 +388,7 @@ void bbb_loop(Disque* disque){
 			i++;
 		}
 		free(arguments);
+		sauvegarder(disque);
 	}
 }
 

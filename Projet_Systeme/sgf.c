@@ -5,19 +5,84 @@
 #include "sgf.h"
 #include "bbb.h"
 
+//sauvegarde le contenu du disque dans un fichier
+void sauvegarder(Disque* disque){
+	//descripteur du fichier de sauvegarde
+	FILE* fichier_de_sauvegarde;
+
+	//on ouvre le fichier de sauvegarde en mode écriture, si il n'existe pas on le crée
+	fichier_de_sauvegarde = fopen("disque.dat","w");
+
+	//on teste l'ouverture du fichier, si elle échoue on crash
+	if(!fichier_de_sauvegarde){
+		fprintf(stderr,"Erreur d'ouverture du fichier de sauvegarde à la sauvegarde.\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	//on écrit les informations du disque dans le fichier
+	if(!fwrite(disque,sizeof(Disque),1,fichier_de_sauvegarde)){
+		//si l'écriture échoue on crash
+		fprintf(stderr,"Erreur lors de l'écriture dans le fichier de sauvegarde.\n");
+		exit(EXIT_FAILURE);
+	}
+	//on ferme le fichier
+	fclose(fichier_de_sauvegarde);
+}
+
+//charge le contenu du disque depuis un fichier de sauvegarde
+void charger(Disque* disque){
+	//descripteur du fichier de sauvegarde
+	FILE* fichier_de_sauvegarde;
+
+	//on ouvre le fichier en mode lecture
+	fichier_de_sauvegarde = fopen("disque.dat","r");
+
+	//on teste l'ouverture du fichier, si elle échoue on crash
+	if(!fichier_de_sauvegarde){
+		fprintf(stderr,"Erreur de l'ouverture du fichier de sauvegarde au chargement.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	//on lit les informations du fichier et on les écrit dans le disque
+	if(!fread(disque,sizeof(Disque),1,fichier_de_sauvegarde)){
+		//si la lecture échoue on crash
+		fprintf(stderr,"Erreur de lecture dans le fichier de sauvegarde.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	//on ferme le fichier
+	fclose(fichier_de_sauvegarde);
+}
+
+//intialisation du disque dur
+void initialisation(Disque* disque){
+	//chemin et contenu temporaire pour tests
+	char chemin_cc[] = "/cc";
+	char contenu_cc[] = "hello\0";
+	int inode_cc;
+	//on formatte le disque
+	formatter(disque);
+	//on attribue le bloc 0 à l'inode 0
+	attribuer_bloc(0,0,disque);
+	//on signale que l'inode 0 est utilisé
+	disque->inode[0].utilise = 1;
+	//on crée notre fichier de test
+	inode_cc = creer_fichier(chemin_cc,0,disque);
+	ecrire_fichier(inode_cc,contenu_cc,disque);
+}
+
 //formate le disque
 void formatter(Disque* disque){
 	int i;
 	int j;
 
-	for (i = 0; i < 15; i++)
-	{
+	for (i = 0; i < 15; i++){
 		//on passe tous les typefichiers à 0
 		disque->inode[i].typefichier = 0;
-		for (j = 0; j < 30; j++)
-		{
+		for (j = 0; j < 30; j++){
 			//on passe tous les blocs utilises à -1 (les  fichiers n'existent pas il n'utilisent donc aucun bloc)
 			disque->inode[i].blocutilise[j] = -1;
+			disque->inode[i].utilise = 0;
 		}
 	}
 	for(i = 0; i < 30; i++){

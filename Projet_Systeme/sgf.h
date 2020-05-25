@@ -47,6 +47,14 @@ typedef struct disque{
 //formatte le disque
 void formatter(Disque* disque);
 
+void initialisation(Disque* disque);
+
+//sauvegarde le disque
+void sauvegarder(Disque* disque);
+
+//charge le contenu du disque depuis le fichier de sauvegarde
+void charger(Disque* disque);
+
 //retourne l'inode d'un fichier via son chemin
 int inode_via_chemin(char* chemin, int position_courante, Disque* disque);
 
