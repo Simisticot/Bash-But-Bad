@@ -35,3 +35,7 @@ void cd(char** arguments, int* position, Disque* disque);
 void ls(char** arguments, int position, Disque* disque);
 //commande cat
 void cat(char** arguments, int position,Disque* disque);
+
+void cp(char** arguments,Disque* disque);
+
+void mv(char** arguments,Disque* disque);
