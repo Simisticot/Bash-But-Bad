@@ -536,6 +536,11 @@ void retirer_ligne_repertoire(char* nom_fichier, int inode_repertoire, Disque* d
 		//le chemin est découpé durant le test, on utilise donc la copie pour l'ajout
 		copie_ligne_courante = strdup(lignes_repo[i]);
 		if(inode_si_nom_dans_ligne(nom_fichier,lignes_repo[i]) == -1){
+			//on réalloue la mémoire pour la copie en lui ajoutant un octet pour le retour à la ligne
+			copie_ligne_courante = realloc(copie_ligne_courante,sizeof(char)*strlen(copie_ligne_courante)+1);
+			//on ajoute le retour à la ligne
+			strncat(copie_ligne_courante,"\n",1);
+			//on ajoute la ligne au fichier
 			ajouter_fichier(inode_repertoire,copie_ligne_courante,disque);
 		}
 		//on libère la copie après chaque utilisation car strdup alloue un nouveau bloc à chaque appel

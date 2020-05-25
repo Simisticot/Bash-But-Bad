@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
 	disque.inode[0].utilise = 1;
 	attribuer_bloc(0,0,&disque);
 
-	strncpy(disque.bloc[0].donnees,"etc;2\nhome;4\ntmp;6",SGF_TAILLE_BLOC);
+	strncpy(disque.bloc[0].donnees,"etc;2\nhome;4\ntmp;6\n",SGF_TAILLE_BLOC);
 	disque.inode[2].utilise = 1;
 	attribuer_bloc(2,6,&disque);
 	disque.inode[4].utilise = 1;
@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
 	disque.inode[6].utilise = 1;
 	attribuer_bloc(6,2,&disque);
 
-	strncpy(disque.bloc[4].donnees,"sylvie;3\nsimon;12",SGF_TAILLE_BLOC);
+	strncpy(disque.bloc[4].donnees,"sylvie;3\nsimon;12\n",SGF_TAILLE_BLOC);
 	disque.inode[3].utilise = 1;
 	attribuer_bloc(3,15,&disque);
 	disque.inode[12].utilise = 1;

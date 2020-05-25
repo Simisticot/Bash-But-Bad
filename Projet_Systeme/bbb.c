@@ -262,20 +262,20 @@ void bbb_execution(char** arguments,int* position,Disque* disque)
 	}else if (strcmp(arguments[0],"ls") == 0){
 		ls(arguments,*position,disque);
   }else if (strcmp(arguments[0],"cp") == 0){
-		cp(arguments,disque);
+		cp(arguments, *position,disque);
 	}else if (strcmp(arguments[0],"mv") == 0){
-		mv(arguments,disque);
+		mv(arguments, *position,disque);
   }
 }
 
-void cp(char** arguments,Disque* disque){
+void cp(char** arguments, int position, Disque* disque){
 	//verif
 	if (arguments[1] != NULL && arguments[2] != NULL){
 
 		//verif fichier dest n'existe pas
 		char* copie_chemin_parent = strdup(arguments[2]);
 		char* copie_chemin_nom = strdup(arguments[2]);
-		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent,disque);
+		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent, position, disque);
 		//printf("inode parent :%d\n",inode_parent_dest);
 
 		char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
@@ -286,12 +286,12 @@ void cp(char** arguments,Disque* disque){
 			//le fichier n'existe pas
 
 			//recup contenu du fichier src
-			int inodesrc = inode_via_chemin(arguments[1],disque);
+			int inodesrc = inode_via_chemin(arguments[1], position, disque);
 			char* contenu = contenu_fichier(inodesrc,disque);
 			printf("source:%s\n",contenu);
 
 			//creation du fichier destination
-			int inodedest = creer_fichier(arguments[2], disque);
+			int inodedest = creer_fichier(arguments[2], position, disque);
 			//copie dans le fichier dest
 			ecrire_fichier(inodedest,contenu,disque);
 
@@ -314,7 +314,7 @@ void cp(char** arguments,Disque* disque){
 
 }
 
-void mv(char** arguments,Disque* disque){
+void mv(char** arguments, int position, Disque* disque){
 	//verif
 	if (arguments[1] != NULL && arguments[2] != NULL){
 
@@ -324,7 +324,7 @@ void mv(char** arguments,Disque* disque){
 		char* copie_chemin_nom = strdup(arguments[2]);;
 		char* copie_chemin_src = strdup(arguments[1]);
 
-		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent,disque);
+		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent, position, disque);
 		
 		char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
 
@@ -332,17 +332,16 @@ void mv(char** arguments,Disque* disque){
 			//le fichier n'existe pas
 
 			//recup contenu du fichier src
-			int inodesrc = inode_via_chemin(copie_chemin_src,disque);
+			int inodesrc = inode_via_chemin(copie_chemin_src, position, disque);
 			char* contenu = contenu_fichier(inodesrc,disque);
 			
 			//creation du fichier destination
-			int inodedest = creer_fichier(arguments[2], disque);
-
+			int inodedest = creer_fichier(arguments[2], position, disque);
 			//copie dans le fichier dest
 			ecrire_fichier(inodedest,contenu,disque);
 
 			//suppression premier fichier
-			supprimer_fichier(arguments[1],disque);
+			supprimer_fichier(arguments[1], position, disque);
 			
 			free(contenu);
 
@@ -355,7 +354,7 @@ void mv(char** arguments,Disque* disque){
 		free(copie_chemin_parent);
 		free(copie_chemin_nom);
 		free(copie_chemin_src);
-		
+	}	
 }
 
 
