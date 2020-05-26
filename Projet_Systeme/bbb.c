@@ -504,7 +504,7 @@ char** decouper(char* entree, char* delimiteurs){
 	//on renvoie le tableau de découpes
 	return decoupes;
 }
-
+#include <time.h>
 //déplace la position actuelle dans le sgf
 void cd(char** arguments, int* position, Disque* disque){
 	// si il n'y a pas de second argument on retourne à la racine
@@ -520,14 +520,25 @@ void cd(char** arguments, int* position, Disque* disque){
 void ls(char** arguments, int position, Disque* disque){
 	//inode du répertoire indiqué
 	int inode;
+	printf("chaine %soui\n",arguments[1]);
 	//si on n'a pas de chemin on affiche le contenu du répertoire courant
 	if(arguments[1] == NULL){
 		afficher_noms(position,disque);
+	
+	}else if (strcmp(arguments[1],"blablou")){
+		time_t t = time(NULL);
+		char* date = ctime(&t);
+		printf("date=%s\n",date);
+
 	//si on on a un chemin on affiche le contenu du répertoire indiqué
 	}else{
 		inode = inode_via_chemin(arguments[1],position,disque);
-		afficher_noms(inode,disque);
+		if (inode !=-1){
+			afficher_noms(inode,disque);
+		}
 	}
+
+
 }
 
 //affiche les noms des fichiers contenus dans un répertoire séparés par un espace
@@ -560,3 +571,4 @@ void afficher_noms(int inode_repertoire, Disque* disque){
 	//on termine la ligne sur l'affichage
 	printf("\n");
 }
+
