@@ -123,8 +123,10 @@ int inode_via_chemin(char* chemin, int position_courante, Disque* disque){
 			}
 			//si on ne trouve pas l'inode suivant on crash
 			if(prochain_inode == -1){
-				fprintf(stderr,"Inode introuvable dans le répertoire %d",inode);
-				exit(EXIT_FAILURE);
+				//fprintf(stderr,"Inode introuvable dans le répertoire %d\n",inode);
+				inode = -1;
+				break;
+				//exit(EXIT_FAILURE);
 			//si on trouve l'inode on le place dans la variable inode, on incrémente le curseur pour passer au répertoire suivant
 			}else{
 				inode = prochain_inode;
@@ -172,8 +174,11 @@ int inode_parent_via_chemin(char* chemin, int position_courante, Disque* disque)
 			}
 			//si on ne trouve pas l'inode suivant on crash
 			if(prochain_inode == -1){
-				fprintf(stderr,"Inode introuvable dans le répertoire %d",inode);
-				exit(EXIT_FAILURE);
+
+				//fprintf(stderr,"Inode introuvable dans le répertoire %d",inode);
+				//exit(EXIT_FAILURE);
+				inode = -1;
+				break;
 			//si on trouve l'inode on le place dans la variable inode, on incrémente le curseur pour passer au répertoire suivant
 			}else{
 				inode = prochain_inode;

@@ -47,3 +47,9 @@ void mkdir(char** arguments, int position_courante, Disque* disque);
 void notre_rmdir(char** arguments, int position, Disque* disque);
 //commande rm
 void notre_rm(char** arguments, int position, Disque* disque);
+//commande df
+void df(char** arguments, Disque* disque);
+//clear
+void clear();
+//aide
+void help(char* commande);

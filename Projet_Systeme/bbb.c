@@ -190,32 +190,43 @@ void cat(char** arguments, int position,Disque* disque){
 		int inode = inode_via_chemin(arguments[1], position, disque);
 		//test
 		//ecrire_fichier(inode,"Bonjour et bienvenue sur \nle fichier",disque);
+		if (inode != -1){
+			char* contenu = contenu_fichier(inode,disque);
+			printf("%s\n",contenu);
+			free(contenu);
+		}else{
+			printf("Fichier introuvable\n");
+		}
 		
-		char* contenu = contenu_fichier(inode,disque);
-		printf("%s\n",contenu);
-		free(contenu);
 	}else if (arguments[2] != NULL && strcmp(arguments[2],">") == 0 && arguments[3] != NULL) {
 		int inodesrc = inode_via_chemin(arguments[1], position, disque);
 		int inodedest = inode_via_chemin(arguments[3], position, disque);
 
 		//recup le contenu du fichier src
-		char* contenusrc = contenu_fichier(inodesrc,disque);
+		if (inodesrc!=-1 && inodedest != -1){
 
-		//test cat
-		//char* contenudest = contenu_fichier(inodedest,disque);
-		//printf("contenu dest avant cat:%s\n",contenudest);
+			char* contenusrc = contenu_fichier(inodesrc,disque);
+			
 
-		//copie le contenu dans le fichier dest
-		ecrire_fichier(inodedest,contenusrc,disque);
+			//test cat
+			//char* contenudest = contenu_fichier(inodedest,disque);
+			//printf("contenu dest avant cat:%s\n",contenudest);
 
-		//test cat
-		//contenudest = contenu_fichier(inodedest,disque);
-		//printf("contenu dest:%s\n",contenudest);
-		//free(contenudest);
+			//copie le contenu dans le fichier dest
 
-		free(contenusrc);
+			ecrire_fichier(inodedest,contenusrc,disque);
+
+			//test cat
+			//contenudest = contenu_fichier(inodedest,disque);
+			//printf("contenu dest:%s\n",contenudest);
+			//free(contenudest);
+
+			free(contenusrc);
+		}else{
+			printf("Fichier introuvable\n");
+		}
 	}else{
-		printf("Mauvaise utilisation de cat\n");
+		help("cat");
 	}
 }
 
@@ -227,39 +238,39 @@ void echo(char** arguments, int position, Disque* disque){
 		printf("%s\n",arguments[1]);
 
 	} //ecriture dans un fichier
-	else if(arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL)
+	else if(arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL && arguments[4] == NULL)
 	{
 		int inode = 0;
 		inode = inode_via_chemin(arguments[3], position,disque);
-		if(!disque->inode[inode].typefichier){
-			ecrire_fichier(inode,arguments[1],disque);
-		}else{
+		if (inode != -1){
+      if(!disque->inode[inode].typefichier){
+			  ecrire_fichier(inode,arguments[1],disque);
+      }else{
 			printf("L'écriture dans un répertoire n'est pas autorisée\n");
-		}	
+		  }
+		}else{
+			printf("Fichier introuvable\n");
+		}
 	}else{
-		printf("Mauvaise utilisation de echo\n");
+		help("echo");
 	}
-	
 }
 
-void bbb_execution(char** arguments,int* position,Disque* disque)
-{
-		//fonction echo
+
+void bbb_execution(char** arguments,int* position,Disque* disque){	
 	if (strcmp(arguments[0],"echo") == 0){
 		echo(arguments, *position, disque);
-		//fonction cat
 	} else if (strcmp(arguments[0],"cat") == 0){
 		cat(arguments, *position, disque);
-		//fonction cd
 	}else if (strcmp(arguments[0],"cd") == 0){
 		cd(arguments, position, disque);
 	}else if (strcmp(arguments[0],"ls") == 0){
 		ls(arguments,*position,disque);
-  	}else if (strcmp(arguments[0],"cp") == 0){
+  }else if (strcmp(arguments[0],"cp") == 0){
 		cp(arguments, *position,disque);
 	}else if (strcmp(arguments[0],"mv") == 0){
 		mv(arguments, *position,disque);
-  	}else if (strcmp(arguments[0],"mkf") == 0){
+  }else if (strcmp(arguments[0],"mkf") == 0){
 		mkf(arguments,*position,disque);
 	}else if (strcmp(arguments[0],"mkdir") == 0){
 		mkdir(arguments,*position,disque);
@@ -267,12 +278,19 @@ void bbb_execution(char** arguments,int* position,Disque* disque)
 		notre_rmdir(arguments, *position, disque);
 	}else if (strcmp(arguments[0],"rm") == 0){
 		notre_rm(arguments, *position, disque);
+	}else if (strcmp(arguments[0],"df") == 0){
+		df(arguments,disque);
+	}else if (strcmp(arguments[0],"clear") == 0){
+		clear();
+	//aucune commande
+	}else{
+		printf("Cette commande n'existe pas\n");
 	}
 }
 
 void cp(char** arguments, int position, Disque* disque){
 	//verif
-	if (arguments[1] != NULL && arguments[2] != NULL){
+	if (arguments[1] != NULL && arguments[2] != NULL && arguments[3] == NULL){
 
 		//verif fichier dest n'existe pas
 		char* copie_chemin_parent = strdup(arguments[2]);
@@ -280,43 +298,62 @@ void cp(char** arguments, int position, Disque* disque){
 		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent, position, disque);
 		//printf("inode parent :%d\n",inode_parent_dest);
 
-		char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
-		//printf("nom:%s\n",nomdest);
+		//verification du chemin du fichier de destination
+		if (inode_parent_dest != -1){
+
+			char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
+			//printf("nom:%s\n",nomdest);
 
 
-		if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
-			//le fichier n'existe pas
+			if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
+				//le fichier n'existe pas
 
-			//recup contenu du fichier src
-			int inodesrc = inode_via_chemin(arguments[1], position, disque);
-			char* contenu = contenu_fichier(inodesrc,disque);
+				//recup contenu du fichier src
+				int inodesrc = inode_via_chemin(arguments[1], position, disque);
 
-			//creation du fichier destination
-			int inodedest = creer_fichier(arguments[2], position, disque);
-			//copie dans le fichier dest
-			ecrire_fichier(inodedest,contenu,disque);
+				//verification du fichier source
+				if (inodesrc != -1){
+					char* contenu = contenu_fichier(inodesrc,disque);
 
-			char* contenudest = contenu_fichier(inodedest,disque);
-			free(contenudest);
+					//creation du fichier destination
+					int inodedest = creer_fichier(arguments[2], position, disque);
 
-			free(contenu);
+					//copie dans le fichier dest
+					ecrire_fichier(inodedest,contenu,disque);
 
+					char* contenudest = contenu_fichier(inodedest,disque);
+					free(contenudest);
+
+					free(contenu);
+				}else{
+					printf("Fichier source introuvable\n");
+				}
+				
+
+			}else{
+				//le fichier existe deja
+				printf("Le fichier de destination existe déja !\n");
+			}
+
+			free(nomdest);
 		}else{
-			//le fichier existe deja
-			printf("Le fichier de destination existe déja !\n");
-		}
+      
+			printf("Chemin destination introuvable\n");
+			help("cp");
 
-		free(nomdest);
+		}
 		free(copie_chemin_parent);
 		free(copie_chemin_nom);
 		
+	}else{
+		help("cp");
 	}
 
 }
 
 void mv(char** arguments, int position, Disque* disque){
 	//verif
-	if (arguments[1] != NULL && arguments[2] != NULL){
+	if (arguments[1] != NULL && arguments[2] != NULL && arguments[3]== NULL){
 
 		//verif fichier dest n'existe pas
 		//copie chemin
@@ -326,35 +363,51 @@ void mv(char** arguments, int position, Disque* disque){
 
 		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent, position, disque);
 		
-		char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
+		//verification du chemin du fichier de destination
+		if (inode_parent_dest != -1){
+			char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
 
-		if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
-			//le fichier n'existe pas
+			if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
+				//le fichier n'existe pas
 
-			//recup contenu du fichier src
-			int inodesrc = inode_via_chemin(copie_chemin_src, position, disque);
-			char* contenu = contenu_fichier(inodesrc,disque);
-			
-			//creation du fichier destination
-			int inodedest = creer_fichier(arguments[2], position, disque);
-			//copie dans le fichier dest
-			ecrire_fichier(inodedest,contenu,disque);
+				
+				int inodesrc = inode_via_chemin(copie_chemin_src, position, disque);
+				if (inodesrc != -1){
 
-			//suppression premier fichier
-			supprimer_fichier(arguments[1], position, disque);
-			
-			free(contenu);
+					//recup contenu du fichier src
+					char* contenu = contenu_fichier(inodesrc,disque);
+					
+					//creation du fichier destination
+					int inodedest = creer_fichier(arguments[2], position, disque);
+					//copie dans le fichier dest
+					ecrire_fichier(inodedest,contenu,disque);
 
+					//suppression premier fichier
+					supprimer_fichier(arguments[1], position, disque);
+					
+					free(contenu);
+				}else{
+					printf("Fichier source introuvable\n");
+				}
+
+			}else{
+				//le fichier existe deja
+				printf("Le fichier de destination existe déja !\n");
+			}
+
+			free(nomdest);
 		}else{
-			//le fichier existe deja
-			printf("Le fichier de destination existe déja !\n");
-		}
 
-		free(nomdest);
+			printf("Chemin destination introuvable\n");
+			help("mv");
+
+		}
 		free(copie_chemin_parent);
 		free(copie_chemin_nom);
 		free(copie_chemin_src);
-	}	
+	}else{
+		help("mv");
+	}
 }
 
 
@@ -518,19 +571,25 @@ void cd(char** arguments, int* position, Disque* disque){
 	// si il n'y a pas de second argument on retourne à la racine
 	if(arguments[1] == NULL){
 		*position = 0;
+	
 	//sinon on déplace la position actuelle vers le repertoire indiqué par le chemin
-	}else{
+	}else if (arguments[2] == NULL){
 		copie_chemin = strdup(arguments[1]);
 		inode_dest = inode_via_chemin(arguments[1], *position, disque);
-		if(disque->inode[inode_dest].typefichier){
-			*position = inode_dest;
+		if(inode_dest != -1){
+      if(disque->inode[inode_dest].typefichier){
+			  *position = inode_dest;
+        }else{
+          nom_fichier = nom_fichier_via_chemin(copie_chemin);
+			    printf("%s n'est pas un répertoire\n",nom_fichier);
+			    free(nom_fichier);
+        }
 		}else{
-			nom_fichier = nom_fichier_via_chemin(copie_chemin);
-			printf("%s n'est pas un répertoire\n",nom_fichier);
-			free(nom_fichier);
+      printf("Le chemin saisie n'existe pas !\n");
 		}
 		free(copie_chemin);
-	}
+   }else{
+    help("cd");
 }
 
 //affiche les fichiers contenus dans le répertoire courant ou dans le répertoire au chemin donné
@@ -540,13 +599,47 @@ void ls(char** arguments, int position, Disque* disque){
 	//si on n'a pas de chemin on affiche le contenu du répertoire courant
 	if(arguments[1] == NULL){
 		afficher_noms(position,disque);
+	
 	//si on on a un chemin on affiche le contenu du répertoire indiqué
-	}else{
+	}else if (arguments[2] == NULL){
 		inode = inode_via_chemin(arguments[1],position,disque);
-		afficher_noms(inode,disque);
+
+		if (inode !=-1){
+			afficher_noms(inode,disque);
+		}else{
+			printf("Le chemin saisie n'existe pas !\n");
+		}
+	}else{ //erreur sur la commande
+		help("ls");
 	}
 }
 
+void df(char** arguments, Disque* disque){
+	//verif
+	if (arguments[1] == NULL){
+		int i,j,inodes=0,blocs=0,taille_octet;
+		for (i=0;i<15;i++){
+			if (disque->inode[i].utilise == 0){
+				inodes++;
+			}
+		}
+
+		for(i=0;i<30;i++){
+			if (disque->bloc[i].occupe == 0){
+				blocs++;
+			}
+		}
+		taille_octet = SGF_TAILLE_BLOC*blocs;
+		printf("***** DF *****\nInode(s) disponibles: %d\nBloc(s) disponibles: %d\nTaille en octets de l'espace libre sur le disque: %d\n",inodes,blocs,taille_octet);
+	}else{
+		//afficher aide
+	}
+}
+
+void clear(){
+	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+}
 //affiche les noms des fichiers contenus dans un répertoire séparés par un espace
 void afficher_noms(int inode_repertoire, Disque* disque){
 	//curseur pour parcourir les lignes
@@ -589,6 +682,7 @@ void afficher_noms(int inode_repertoire, Disque* disque){
 	//on termine la ligne sur l'affichage
 	printf("\n");
 }
+
 
 //commande permettant de créer un fichier vide
 void mkf(char** arguments, int position_courante, Disque* disque){
@@ -687,4 +781,50 @@ void notre_rm(char** arguments, int position, Disque* disque){
 		//si on n'a pas de chemin on affiche une erreur
 		printf("Chemin manquant\n");
 	}
+}
+
+void help(char* commande){
+	char* help_str;
+
+	//commandes help
+	if (strcmp(commande,"echo") == 0){
+		help_str = "\n***** Utilisation de echo ***** \necho \"texte\" : Affiche le texte dans le terminal \necho \"texte\" > chemin_absolu_fichier : Ecris le texte dans le fichier \necho \"texte\" > ./chemin_relatif_fichier : Ecris le texte dans le fichier \n***** Fin de l'aide *****";
+
+	} else if (strcmp(commande,"cat") == 0){
+		help_str = "\n***** Utilisation de cat ***** \ncat fichier : Affiche le contenu de fichier \ncat chemin_absolu_fichier1 > chemin_absolu_fichier2 : copie le contenu du fichier1 dans le fichier2 \ncat ./chemin_relatif_fichier1 > ./chemin_relatif_fichier2 : copie le contenu du fichier1 dans le fichier2 \n***** Fin de l'aide *****";
+
+	}else if (strcmp(commande,"cd") == 0){
+		help_str = "\n***** Utilisation de cd ***** \ncd  : Se deplacer dans le repertoire principal / \ncd chemin_absolu : Se deplacer dans le repertoire \ncd ./chemin_relatif : Se déplacer dans le repertoire \n***** Fin de l'aide *****";
+
+	}else if (strcmp(commande,"ls") == 0){
+		help_str = "\n***** Utilisation de ls ***** \nls : Affiche les fichiers du repertoire actuel \nls chemin_absolu : Affiche les fichiers du répertoire saisi \nls ./chemin_relatif : Affiche les fichiers du répertoire saisi \n***** Fin de l'aide *****";
+
+  	}else if (strcmp(commande,"cp") == 0){
+		help_str = "\n***** Utilisation de cp ***** \ncp chemin_absolu_fichier1 chemin_absolu_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \ncp ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \n***** Fin de l'aide *****";
+
+	}else if (strcmp(commande,"mv") == 0){
+		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
+  	
+  	}else if (strcmp(commande,"mkdir") == 0){
+		help_str = "\n***** Utilisation de ls ***** \nls : Affiche les fichiers du repertoire actuel \nls chemin_absolu : Affiche les fichiers du répertoire saisi \nls ./chemin_relatif : Affiche les fichiers du répertoire saisi \n***** Fin de l'aide *****";
+
+  	}else if (strcmp(commande,"rmdir") == 0){
+		help_str = "\n***** Utilisation de cp ***** \ncp chemin_absolu_fichier1 chemin_absolu_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \ncp ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \n***** Fin de l'aide *****";
+
+	}else if (strcmp(commande,"rmf") == 0){
+		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
+  	
+  	}else if (strcmp(commande,"rmdir") == 0){
+		help_str = "\n***** Utilisation de cp ***** \ncp chemin_absolu_fichier1 chemin_absolu_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \ncp ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \n***** Fin de l'aide *****";
+
+	}else if (strcmp(commande,"mkf") == 0){
+		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
+  	
+  	}else if (strcmp(commande,"rmdir") == 0){
+		help_str = "\n***** Utilisation de cp ***** \ncp chemin_absolu_fichier1 chemin_absolu_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \ncp ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \n***** Fin de l'aide *****";
+
+	}else if (strcmp(commande,"") == 0){
+		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
+  	}
+  	printf("%s\n",help_str);
 }
