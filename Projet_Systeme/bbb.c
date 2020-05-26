@@ -590,6 +590,7 @@ void cd(char** arguments, int* position, Disque* disque){
 		free(copie_chemin);
    }else{
     help("cd");
+   }
 }
 
 //affiche les fichiers contenus dans le répertoire courant ou dans le répertoire au chemin donné
