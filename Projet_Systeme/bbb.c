@@ -190,30 +190,41 @@ void cat(char** arguments, int position,Disque* disque){
 		int inode = inode_via_chemin(arguments[1], position, disque);
 		//test
 		//ecrire_fichier(inode,"Bonjour et bienvenue sur \nle fichier",disque);
+		if (inode != -1){
+			char* contenu = contenu_fichier(inode,disque);
+			printf("%s\n",contenu);
+			free(contenu);
+		}else{
+			printf("Fichier introuvable\n");
+		}
 		
-		char* contenu = contenu_fichier(inode,disque);
-		printf("%s\n",contenu);
-		free(contenu);
 	}else if (arguments[2] != NULL && strcmp(arguments[2],">") == 0 && arguments[3] != NULL) {
 		int inodesrc = inode_via_chemin(arguments[1], position, disque);
 		int inodedest = inode_via_chemin(arguments[3], position, disque);
 
 		//recup le contenu du fichier src
-		char* contenusrc = contenu_fichier(inodesrc,disque);
+		if (inodesrc!=-1 && inodedest != -1){
 
-		//test cat
-		//char* contenudest = contenu_fichier(inodedest,disque);
-		//printf("contenu dest avant cat:%s\n",contenudest);
+			char* contenusrc = contenu_fichier(inodesrc,disque);
+			
 
-		//copie le contenu dans le fichier dest
-		ecrire_fichier(inodedest,contenusrc,disque);
+			//test cat
+			//char* contenudest = contenu_fichier(inodedest,disque);
+			//printf("contenu dest avant cat:%s\n",contenudest);
 
-		//test cat
-		//contenudest = contenu_fichier(inodedest,disque);
-		//printf("contenu dest:%s\n",contenudest);
-		//free(contenudest);
+			//copie le contenu dans le fichier dest
 
-		free(contenusrc);
+			ecrire_fichier(inodedest,contenusrc,disque);
+
+			//test cat
+			//contenudest = contenu_fichier(inodedest,disque);
+			//printf("contenu dest:%s\n",contenudest);
+			//free(contenudest);
+
+			free(contenusrc);
+		}else{
+			printf("Fichier introuvable\n");
+		}
 	}else{
 		printf("Mauvaise utilisation de cat\n");
 	}
@@ -233,21 +244,23 @@ void echo(char** arguments, int position, Disque* disque){
 		int inode = 0;
 		inode = inode_via_chemin(arguments[3], position,disque);
 		//printf("inode= %d\n",inode);
-		char* contenuavant = contenu_fichier(inode,disque);
-		ecrire_fichier(inode,arguments[1],disque);
-		char* contenuapres = contenu_fichier(inode,disque);
+		if (inode != -1){
+			char* contenuavant = contenu_fichier(inode,disque);
+			ecrire_fichier(inode,arguments[1],disque);
+			char* contenuapres = contenu_fichier(inode,disque);
 
-		free(contenuavant);
-		free(contenuapres);
+			free(contenuavant);
+			free(contenuapres);
+		}else{
+			printf("Fichier introuvable\n");
+		}
 	}else{
 		printf("Mauvaise utilisation de echo\n");
 	}
 	
 }
 
-void bbb_execution(char** arguments,int* position,Disque* disque)
-{
-		//fonction echo
+void bbb_execution(char** arguments,int* position,Disque* disque){
 	if (strcmp(arguments[0],"echo") == 0){
 		echo(arguments, *position, disque);
 		//fonction cat
@@ -275,33 +288,47 @@ void cp(char** arguments, int position, Disque* disque){
 		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent, position, disque);
 		//printf("inode parent :%d\n",inode_parent_dest);
 
-		char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
-		//printf("nom:%s\n",nomdest);
+		//verification du chemin du fichier de destination
+		if (inode_parent_dest != -1){
+
+			char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
+			//printf("nom:%s\n",nomdest);
 
 
-		if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
-			//le fichier n'existe pas
+			if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
+				//le fichier n'existe pas
 
-			//recup contenu du fichier src
-			int inodesrc = inode_via_chemin(arguments[1], position, disque);
-			char* contenu = contenu_fichier(inodesrc,disque);
+				//recup contenu du fichier src
+				int inodesrc = inode_via_chemin(arguments[1], position, disque);
 
-			//creation du fichier destination
-			int inodedest = creer_fichier(arguments[2], position, disque);
-			//copie dans le fichier dest
-			ecrire_fichier(inodedest,contenu,disque);
+				//verification du fichier source
+				if (inodesrc != -1){
+					char* contenu = contenu_fichier(inodesrc,disque);
 
-			char* contenudest = contenu_fichier(inodedest,disque);
-			free(contenudest);
+					//creation du fichier destination
+					int inodedest = creer_fichier(arguments[2], position, disque);
 
-			free(contenu);
+					//copie dans le fichier dest
+					ecrire_fichier(inodedest,contenu,disque);
 
+					char* contenudest = contenu_fichier(inodedest,disque);
+					free(contenudest);
+
+					free(contenu);
+				}else{
+					printf("Fichier source introuvable\n");
+				}
+				
+
+			}else{
+				//le fichier existe deja
+				printf("Le fichier de destination existe déja !\n");
+			}
+
+			free(nomdest);
 		}else{
-			//le fichier existe deja
-			printf("Le fichier de destination existe déja !\n");
+			printf("Chemin destination introuvable\n");
 		}
-
-		free(nomdest);
 		free(copie_chemin_parent);
 		free(copie_chemin_nom);
 		
@@ -321,31 +348,42 @@ void mv(char** arguments, int position, Disque* disque){
 
 		int inode_parent_dest = inode_parent_via_chemin(copie_chemin_parent, position, disque);
 		
-		char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
+		//verification du chemin du fichier de destination
+		if (inode_parent_dest != -1){
+			char* nomdest =nom_fichier_via_chemin(copie_chemin_nom);
 
-		if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
-			//le fichier n'existe pas
+			if (inode_via_repertoire(nomdest,inode_parent_dest,disque) == -1){
+				//le fichier n'existe pas
 
-			//recup contenu du fichier src
-			int inodesrc = inode_via_chemin(copie_chemin_src, position, disque);
-			char* contenu = contenu_fichier(inodesrc,disque);
-			
-			//creation du fichier destination
-			int inodedest = creer_fichier(arguments[2], position, disque);
-			//copie dans le fichier dest
-			ecrire_fichier(inodedest,contenu,disque);
+				
+				int inodesrc = inode_via_chemin(copie_chemin_src, position, disque);
+				if (inodesrc != -1){
 
-			//suppression premier fichier
-			supprimer_fichier(arguments[1], position, disque);
-			
-			free(contenu);
+					//recup contenu du fichier src
+					char* contenu = contenu_fichier(inodesrc,disque);
+					
+					//creation du fichier destination
+					int inodedest = creer_fichier(arguments[2], position, disque);
+					//copie dans le fichier dest
+					ecrire_fichier(inodedest,contenu,disque);
 
+					//suppression premier fichier
+					supprimer_fichier(arguments[1], position, disque);
+					
+					free(contenu);
+				}else{
+					printf("Fichier source introuvable\n");
+				}
+
+			}else{
+				//le fichier existe deja
+				printf("Le fichier de destination existe déja !\n");
+			}
+
+			free(nomdest);
 		}else{
-			//le fichier existe deja
-			printf("Le fichier de destination existe déja !\n");
+			printf("Chemin destination introuvable\n");
 		}
-
-		free(nomdest);
 		free(copie_chemin_parent);
 		free(copie_chemin_nom);
 		free(copie_chemin_src);
@@ -512,7 +550,13 @@ void cd(char** arguments, int* position, Disque* disque){
 		*position = 0;
 	//sinon on déplace la position actuelle vers le repertoire indiqué par le chemin
 	}else{
-		*position = inode_via_chemin(arguments[1], *position, disque);
+		int inode = inode_via_chemin(arguments[1], *position, disque);
+		if (inode != -1){
+			*position = -1;
+		}else{
+			printf("Le chemin saisie n'existe pas !\n");
+		}
+		
 	}
 }
 
@@ -526,7 +570,12 @@ void ls(char** arguments, int position, Disque* disque){
 	//si on on a un chemin on affiche le contenu du répertoire indiqué
 	}else{
 		inode = inode_via_chemin(arguments[1],position,disque);
-		afficher_noms(inode,disque);
+		if (inode !=-1){
+			afficher_noms(inode,disque);
+		}else{
+			printf("Le chemin saisie n'existe pas !\n");
+		}
+		
 	}
 }
 
