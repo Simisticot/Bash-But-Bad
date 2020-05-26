@@ -20,7 +20,7 @@
 typedef struct infoinode{
 	//les permissions sur le fichier
 	char permissions[3];
-	//type de fichier 1 texte 2 binaire
+	//type de fichier 0 pour un fichier normal, 1 pour un répertoire
 	int typefichier;
 	//index des blocs utilisés
 	int blocutilise[30];
@@ -99,3 +99,15 @@ void effacer_fichier(int inode, Disque* disque);
 
 //supprime un fichier via son chemin
 void supprimer_fichier(char* chemin,int position_courante, Disque* disque);
+
+// crée un simple fichier vide
+void creer_fichier_vide(char* chemin, int position, Disque* disque);
+
+//crée un répertoire vide
+void creer_repertoire_vide(char* chemin, int position, Disque* disque);
+
+//vérifie si un fichier existe via son chemin, 
+int existe_fichier(char* chemin, int position, Disque* disque);
+
+//vérifie si un répertoire est vide via son chemin
+int est_repertoire_vide(char* chemin, int position, Disque* disque);

@@ -39,3 +39,11 @@ void cat(char** arguments, int position,Disque* disque);
 void cp(char** arguments, int position, Disque* disque);
 //commande mv
 void mv(char** arguments, int position, Disque* disque);
+//commande mkf
+void mkf(char** arguments, int position, Disque* disque);
+//commande mkdir
+void mkdir(char** arguments, int position_courante, Disque* disque);
+//commande rmdir
+void notre_rmdir(char** arguments, int position, Disque* disque);
+//commande rm
+void notre_rm(char** arguments, int position, Disque* disque);
