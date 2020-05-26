@@ -617,7 +617,7 @@ void help(char* commande){
 		help_str = "\n***** Utilisation de cat ***** \ncat fichier : Affiche le contenu de fichier \ncat chemin_absolu_fichier1 > chemin_absolu_fichier2 : copie le contenu du fichier1 dans le fichier2 \ncat ./chemin_relatif_fichier1 > ./chemin_relatif_fichier2 : copie le contenu du fichier1 dans le fichier2 \n***** Fin de l'aide *****";
 
 	}else if (strcmp(commande,"cd") == 0){
-		help_str = "\n***** Utilisation de cd ***** \ncd  : Se deplacer das le repertoire principal / \ncd chemin_absolu : Se deplacer dans le repertoire \ncd ./chemin_relatif : Se déplacer dans le repertoire \n***** Fin de l'aide *****";
+		help_str = "\n***** Utilisation de cd ***** \ncd  : Se deplacer dans le repertoire principal / \ncd chemin_absolu : Se deplacer dans le repertoire \ncd ./chemin_relatif : Se déplacer dans le repertoire \n***** Fin de l'aide *****";
 
 	}else if (strcmp(commande,"ls") == 0){
 		help_str = "\n***** Utilisation de ls ***** \nls : Affiche les fichiers du repertoire actuel \nls chemin_absolu : Affiche les fichiers du répertoire saisi \nls ./chemin_relatif : Affiche les fichiers du répertoire saisi \n***** Fin de l'aide *****";
@@ -628,7 +628,7 @@ void help(char* commande){
 	}else if (strcmp(commande,"mv") == 0){
 		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
   	
-  	}/*else if (strcmp(commande,"mkdir") == 0){
+  	}else if (strcmp(commande,"mkdir") == 0){
 		help_str = "\n***** Utilisation de ls ***** \nls : Affiche les fichiers du repertoire actuel \nls chemin_absolu : Affiche les fichiers du répertoire saisi \nls ./chemin_relatif : Affiche les fichiers du répertoire saisi \n***** Fin de l'aide *****";
 
   	}else if (strcmp(commande,"rmdir") == 0){
@@ -649,8 +649,5 @@ void help(char* commande){
 	}else if (strcmp(commande,"") == 0){
 		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
   	}
-	*/
-
-
   	printf("%s\n",help_str);
 }
