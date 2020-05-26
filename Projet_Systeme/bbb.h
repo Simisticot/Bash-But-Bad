@@ -39,3 +39,10 @@ void cat(char** arguments, int position,Disque* disque);
 void cp(char** arguments, int position, Disque* disque);
 //commande mv
 void mv(char** arguments, int position, Disque* disque);
+//commande df
+void df(char** arguments, Disque* disque);
+
+//clear
+void clear();
+//aide
+void help(char* commande);
