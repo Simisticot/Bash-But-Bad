@@ -831,7 +831,7 @@ void help(char* commande){
 		help_str = "\n***** Utilisation de mkf ***** \nmkf chemin_absolu_fichier : Créer un fichier dans le chemin saisi s'il n'y en pas déja du même nom\nmkf ./chemin_relatif_fichier : Créer un fichier dans le chemin saisi s'il n'y en pas déja du même nom \n***** Fin de l'aide *****";
 
   	}else if (strcmp(commande,"mkdir") == 0){
-		help_str = "\n***** Utilisation de mkdir ***** \nmkf chemin_absolu_repertoire : Créer un répertoire dans le chemin saisi s'il n'y en pas déja du même nom\nmkf ./chemin_relatif_repertoire : Créer un repertoire dans le chemin saisi s'il n'y en pas déja du même nom \n***** Fin de l'aide *****";
+		help_str = "\n***** Utilisation de mkdir ***** \nmkdir chemin_absolu_repertoire : Créer un répertoire dans le chemin saisi s'il n'y en pas déja du même nom\nmkdir ./chemin_relatif_repertoire : Créer un repertoire dans le chemin saisi s'il n'y en pas déja du même nom \n***** Fin de l'aide *****";
 
 	}
   	printf("%s\n",help_str);
