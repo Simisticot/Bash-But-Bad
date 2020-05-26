@@ -66,8 +66,11 @@ void initialisation(Disque* disque){
 	attribuer_bloc(0,0,disque);
 	//on signale que l'inode 0 est utilisé
 	disque->inode[0].utilise = 1;
+	//on signale que l'inode 0 est un répertoire
+	disque->inode[0].typefichier = 1;
 	//on crée notre fichier de test
 	inode_cc = creer_fichier(chemin_cc,0,disque);
+	disque->inode[inode_cc].typefichier = 0;
 	ecrire_fichier(inode_cc,contenu_cc,disque);
 }
 
@@ -620,4 +623,186 @@ void retirer_ligne_repertoire(char* nom_fichier, int inode_repertoire, Disque* d
 	//on libère le contenu et les lignes
 	free(contenu_repo);
 	free(lignes_repo);
+}
+
+//crée un simple fichier vide
+void creer_fichier_vide(char* chemin, int position, Disque* disque){
+	//inode du fichier à créer
+	int inode;
+	//espace à insérer dans le premier bloc du fichier
+	char espace[] = " ";
+	//on vérifie que le fichier n'existe pas déjà
+	if(!existe_fichier(chemin,position,disque)){
+		//on crée le fichier et on conserve l'inode attribué
+		inode = creer_fichier(chemin, position,disque);
+		//on écrit un espace dans le premier bloc du fichier, un bloc entièrement vide peut causer des comportements inatendus si on essaye de le lire ou d'y ajouter du texte
+		ecrire_fichier(inode,espace,disque);
+		//on indique qu'il s'agit d'un simple fichier
+		disque->inode[inode].typefichier = 0;
+	}else{
+		//on affiche une erreur si on fichier du même nom existe au même endroit
+		printf("Un fichier du même nom existe déjà\n");
+	}
+}
+
+//crée un répertoire vide
+void creer_repertoire_vide(char* chemin, int position, Disque* disque){
+	//inode du répertoire parent
+	int inode_parent;
+
+	//inode du répertoire à créer
+	int inode;
+
+	//ligne à insérer dans le répertoire à créer, elle contient le lien vers son parent
+	char ligne_parent[SGF_TAILLE_LIGNE_REPERTOIRE];
+
+	//nom du lien vers le parent
+	char lien_parent[] = "..";
+
+	//copie du chemin servant à obtenir l'inode du parent
+	char* copie_chemin_inode_parent;
+
+	//on vérifie si un fichier du même nom existe au même endroit
+	if(!existe_fichier(chemin,position,disque)){
+
+		//on copie le chemin
+		copie_chemin_inode_parent = strdup(chemin);
+
+		//on récupère l'inode parent via la copie
+		inode_parent = inode_parent_via_chemin(copie_chemin_inode_parent, position, disque);
+
+		//on crée le réperetoire et on conserve son inode
+		inode = creer_fichier(chemin, position, disque);
+
+		//on indique qu'il s'agit d'un répertoire
+		disque->inode[inode].typefichier = 1;
+
+		//on compose la ligne contenant le lien vers le parent
+		//grâce à cette entrée l'utilisateur peut se déplacer vers le parent via la commande 'cd ./..' 
+		//ou utiliser .. dans des chemins relatifs
+		sprintf(ligne_parent,"%s;%d\n",lien_parent,inode_parent);
+		//on ajoute le lien parent au répertoire
+		ecrire_fichier(inode,ligne_parent,disque);
+		//on libère la mémoire
+		free(copie_chemin_inode_parent);
+	}else{
+		//si un fichier du même nom existe on affiche une erreur
+		printf("Un fichier du même nom existe déjà\n");
+	}
+	
+}
+
+//vérifie l'existence ou non d'un fichier via son chemin
+int existe_fichier(char* chemin, int position, Disque* disque){
+	//booleen indiquant l'existence ou non du fichier
+	int existe;
+
+	//curseur permettant de parcourir les lignes du parent
+	int i;
+
+	//inode du répertoire parent
+	int inode_parent;
+
+	//nom du fichier
+	char* nom_fichier;
+
+	//copie du chemin pour extraire l'inode du parent
+	char* copie_chemin_inode_parent;
+
+	//copie du chemin pour extraire le nom du fichier
+	char* copie_chemin_nom;
+
+	//contenu du répertoire parent
+	char* contenu_parent;
+
+	//lignes du répertoire parent
+	char** lignes;
+
+	//donnees d'une ligne du répertoire parent
+	char** donnees;
+
+	//on initialise existe à faux et i à 0
+	existe = 0;
+	i = 0;
+
+	//on crée les copies du chemin
+	copie_chemin_inode_parent = strdup(chemin);
+	copie_chemin_nom = strdup(chemin);
+	
+	//on récupère le nom du fichier et l'inode de son parent
+	nom_fichier = nom_fichier_via_chemin(copie_chemin_nom);
+	inode_parent = inode_parent_via_chemin(copie_chemin_inode_parent, position, disque);
+	
+	//on récupère le contenu du parent
+	contenu_parent = contenu_fichier(inode_parent,disque);
+
+	//on découpe le contenu du parent en lignes
+	lignes = decouper(contenu_parent,SGF_DELIMITEURS_REPERTOIRE);
+
+	//on parcours les lignes du parent pour chercher le nom
+	while(lignes[i] != NULL){
+		//on découpe chaque ligne en champs
+		donnees = decouper(lignes[i],SGF_DELIMITEURS_LIGNE_REPERTOIRE);
+		if(!strcmp(donnees[0],nom_fichier)){
+			//si on trouve le nom on passe existe à vrai
+			existe = 1;
+		}
+		i++;
+		//on libère les champs à la fin de chaque itération
+		free(donnees);
+	}
+
+	//on libère la mémoire
+	free(nom_fichier);
+	free(contenu_parent);
+	free(lignes);
+	free(copie_chemin_nom);
+	free(copie_chemin_inode_parent);
+	return existe;
+}
+
+//vérifie si un répertoire est vide ou non via son chemin
+int est_repertoire_vide(char* chemin, int position, Disque* disque){
+	//inode du répertoire
+	int inode;
+
+	//booléen indiquant si le répertoire est vide ou non
+	int vide;
+
+	//copie du chemin pour récupérer l'inode du répertoire
+	char* copie_chemin_inode;
+	
+	//contenu du répertoire
+	char* contenu_repertoire;
+
+	//lignes du répertoire
+	char** lignes;
+
+	//on initialise vide à faux
+	vide = 0;
+
+	//on copie le chemin
+	copie_chemin_inode = strdup(chemin);
+
+	//on récupère l'inode du répertoire via la copie du chemin
+	inode = inode_via_chemin(copie_chemin_inode, position, disque);
+
+	//on récupère le contenu du répertoire
+	contenu_repertoire = contenu_fichier(inode,disque);
+
+	//on découpe le contenu du répertoire en lignes
+	lignes = decouper(contenu_repertoire,SGF_DELIMITEURS_REPERTOIRE);
+
+	if(lignes[1] == NULL){
+		// si le répertoire n'a qu'une ligne (le lien parent) on passe vide à vrai
+		vide = 1;
+	}
+
+	//on libère la mémoire
+	free(lignes);
+	free(contenu_repertoire);
+	free(copie_chemin_inode);
+
+	//on renvoie vide
+	return vide;
 }

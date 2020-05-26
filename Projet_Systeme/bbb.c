@@ -238,26 +238,22 @@ void echo(char** arguments, int position, Disque* disque){
 		printf("%s\n",arguments[1]);
 
 	} //ecriture dans un fichier
-	else if(arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL)
+	else if(arguments[2]!= NULL && strcmp(arguments[2],">") == 0 && arguments[3]!= NULL && arguments[4] == NULL)
 	{
-
 		int inode = 0;
 		inode = inode_via_chemin(arguments[3], position,disque);
-		//printf("inode= %d\n",inode);
 		if (inode != -1){
-			char* contenuavant = contenu_fichier(inode,disque);
-			ecrire_fichier(inode,arguments[1],disque);
-			char* contenuapres = contenu_fichier(inode,disque);
-
-			free(contenuavant);
-			free(contenuapres);
+      if(!disque->inode[inode].typefichier){
+			  ecrire_fichier(inode,arguments[1],disque);
+      }else{
+			printf("L'écriture dans un répertoire n'est pas autorisée\n");
+		  }
 		}else{
 			printf("Fichier introuvable\n");
 		}
 	}else{
 		help("echo");
 	}
-	
 }
 
 
@@ -270,20 +266,26 @@ void bbb_execution(char** arguments,int* position,Disque* disque){
 		cd(arguments, position, disque);
 	}else if (strcmp(arguments[0],"ls") == 0){
 		ls(arguments,*position,disque);
-  	}else if (strcmp(arguments[0],"cp") == 0){
+  }else if (strcmp(arguments[0],"cp") == 0){
 		cp(arguments, *position,disque);
 	}else if (strcmp(arguments[0],"mv") == 0){
 		mv(arguments, *position,disque);
-  	}else if (strcmp(arguments[0],"df") == 0){
+  }else if (strcmp(arguments[0],"mkf") == 0){
+		mkf(arguments,*position,disque);
+	}else if (strcmp(arguments[0],"mkdir") == 0){
+		mkdir(arguments,*position,disque);
+	}else if (strcmp(arguments[0],"rmdir") == 0){
+		notre_rmdir(arguments, *position, disque);
+	}else if (strcmp(arguments[0],"rm") == 0){
+		notre_rm(arguments, *position, disque);
+	}else if (strcmp(arguments[0],"df") == 0){
 		df(arguments,disque);
 	}else if (strcmp(arguments[0],"clear") == 0){
 		clear();
-
 	//aucune commande
 	}else{
 		printf("Cette commande n'existe pas\n");
 	}
-
 }
 
 void cp(char** arguments, int position, Disque* disque){
@@ -563,22 +565,31 @@ char** decouper(char* entree, char* delimiteurs){
 
 //déplace la position actuelle dans le sgf
 void cd(char** arguments, int* position, Disque* disque){
-
+	int inode_dest;
+	char* copie_chemin;
+	char* nom_fichier;
 	// si il n'y a pas de second argument on retourne à la racine
 	if(arguments[1] == NULL){
 		*position = 0;
 	
 	//sinon on déplace la position actuelle vers le repertoire indiqué par le chemin
-	} else if (arguments[2] == NULL){
-    int inode = inode_via_chemin(arguments[1], *position, disque);
-		if (inode != -1){
-			*position = inode;
+	}else if (arguments[2] == NULL){
+		copie_chemin = strdup(arguments[1]);
+		inode_dest = inode_via_chemin(arguments[1], *position, disque);
+		if(inode_dest != -1){
+      if(disque->inode[inode_dest].typefichier){
+			  *position = inode_dest;
+        }else{
+          nom_fichier = nom_fichier_via_chemin(copie_chemin);
+			    printf("%s n'est pas un répertoire\n",nom_fichier);
+			    free(nom_fichier);
+        }
 		}else{
-			printf("Le chemin saisie n'existe pas !\n");
-	  }	
-  }else{ //erreur sur la commande
-		help("cd");
-	}
+      printf("Le chemin saisie n'existe pas !\n");
+		}
+		free(copie_chemin);
+   }else{
+    help("cd");
 }
 
 //affiche les fichiers contenus dans le répertoire courant ou dans le répertoire au chemin donné
@@ -639,6 +650,9 @@ void afficher_noms(int inode_repertoire, Disque* disque){
 	char** lignes;
 	//champs de chaque ligne
 	char** donnees;
+
+	int inode_ligne;
+
 	i=0;
 	//on extrait le contenu du répertoire
 	contenu = contenu_fichier(inode_repertoire,disque);
@@ -648,7 +662,16 @@ void afficher_noms(int inode_repertoire, Disque* disque){
 	//on découpe chaque ligne en champs et on affiche le premier champ qui contient le nom
 	while(lignes[i] != NULL){
 		donnees = decouper(lignes[i],SGF_DELIMITEURS_LIGNE_REPERTOIRE);
-		printf("%s ",donnees[0]);
+		inode_ligne = atoi(donnees[1]);
+		if(disque->inode[inode_ligne].typefichier){
+			//si le fichier est un répertoire on l'affiche en bleu
+			printf("\033[1;34m");
+			printf("%s ",donnees[0]);
+			printf("\033[0m"); 
+		}else{
+			//autrement on l'affiche normalement
+			printf("%s ",donnees[0]);
+		}
 		free(donnees);
 		i++;
 	}
@@ -658,6 +681,106 @@ void afficher_noms(int inode_repertoire, Disque* disque){
 
 	//on termine la ligne sur l'affichage
 	printf("\n");
+}
+
+
+//commande permettant de créer un fichier vide
+void mkf(char** arguments, int position_courante, Disque* disque){
+	//si il n'y a pas de chemin on affiche une erreur
+	if(arguments[1] != NULL){
+		//sinon on crée un fichier vide à l'emplacement indiqué
+		creer_fichier_vide(arguments[1], position_courante, disque);
+	}else{
+		printf("Chemin manquant\n");
+	}
+}
+
+//commande permettant de créer un répertoire vide
+void mkdir(char** arguments, int position_courante, Disque* disque){
+	//si il n'y a pas de chemin on affiche un message d'erreur
+	if(arguments[1] != NULL){
+		//sinon on crée un répertoire vide à l'emplacement indiqué
+		creer_repertoire_vide(arguments[1],position_courante,disque);
+	}else{
+		printf("Chemin manquant\n");
+	}
+}
+
+//commande permettant de supprimer un répertoire vide via son chemin
+void notre_rmdir(char** arguments, int position, Disque* disque){
+	//l'inode du répertoire à supprimer
+	int inode;
+
+	//copie du chemin pour récupérer l'inode
+	char* copie_chemin_inode;
+
+	//on vérifie si on a un chemin
+	if(arguments[1] != NULL){
+		//on vérifie si le fichier existe
+		if(existe_fichier(arguments[1], position, disque)){
+			//on copie le chemin
+			copie_chemin_inode = strdup(arguments[1]);
+			//on récupère l'inode via la copie du chemin
+			inode = inode_via_chemin(copie_chemin_inode,position,disque);
+			//on vérifie si le fichier est un répertoire
+			if(disque->inode[inode].typefichier){
+				//on vérifie si le répertoire est vide
+				if(est_repertoire_vide(arguments[1], position, disque)){
+					//si toutes les conditions sont remplies on supprime le répertoire
+					supprimer_fichier(arguments[1], position, disque);
+				}else{
+					//si le répertoire n'est pas vide on affiche une erreur
+					printf("Ce répertoire n'est pas vide\n");
+				}
+			}else{
+				//si le fichier n'est pas un répertoire on affiche un message d'erreur
+				printf("Ce fichier n'est pas un répertoire\n");
+			}
+			//on libère la copie du chemin
+			free(copie_chemin_inode);
+		}else{
+				//si le fichier n'existe pas on affiche un message d'erreur
+				printf("Ce répertoire n'existe pas\n");
+			}
+	}else{
+		//si on a pas de chemin on affiche un message d'erreur
+		printf("Chemin manquant\n");
+	}
+}
+
+//commande permettant de supprimer un fichier via son chemin
+void notre_rm(char** arguments, int position, Disque* disque){
+	//inode du fichier à supprimer
+	int inode;
+	//copie du chemin pour récupérer l'inode
+	char* copie_chemin_inode;
+
+	//on vérifie si on a un chemin
+	if(arguments[1] != NULL){
+		//on vérifie si le fichier existe
+		if(existe_fichier(arguments[1],position,disque)){
+			//on copie le chemin
+			copie_chemin_inode = strdup(arguments[1]);
+			//on récupère l'inode via la copie du chemin
+			inode = inode_via_chemin(copie_chemin_inode, position, disque);
+			//on vérifie si le fichier est bien un simple fichier et non un répertoire
+			if(!disque->inode[inode].typefichier){
+				//si les conditions sont remplies on supprime le fichier
+				supprimer_fichier(arguments[1], position, disque);
+			}else{
+				//si le fichier est un répertoire on affiche un message d'erreur 
+				printf("Ce fichier est un répertoire, utilisez rmdir\n");
+			}
+			//on libère la copie du chemin
+			free(copie_chemin_inode);
+		}else{
+			//si le fichier n'existe pas on affiche un message d'erreur
+			printf("Ce fichier n'existe pas\n");
+		}
+	}else{
+		//si on n'a pas de chemin on affiche une erreur
+		printf("Chemin manquant\n");
+	}
 }
 
 void help(char* commande){
