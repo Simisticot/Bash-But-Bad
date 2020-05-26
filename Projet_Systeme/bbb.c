@@ -638,6 +638,7 @@ void df(char** arguments, Disque* disque){
 }
 
 void clear(){
+
 	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
 }
@@ -688,22 +689,22 @@ void afficher_noms(int inode_repertoire, Disque* disque){
 //commande permettant de créer un fichier vide
 void mkf(char** arguments, int position_courante, Disque* disque){
 	//si il n'y a pas de chemin on affiche une erreur
-	if(arguments[1] != NULL){
+	if(arguments[1] != NULL && arguments[2] == NULL){
 		//sinon on crée un fichier vide à l'emplacement indiqué
 		creer_fichier_vide(arguments[1], position_courante, disque);
 	}else{
-		printf("Chemin manquant\n");
+		help("mkf");
 	}
 }
 
 //commande permettant de créer un répertoire vide
 void mkdir(char** arguments, int position_courante, Disque* disque){
 	//si il n'y a pas de chemin on affiche un message d'erreur
-	if(arguments[1] != NULL){
+	if(arguments[1] != NULL && arguments[2] == NULL){
 		//sinon on crée un répertoire vide à l'emplacement indiqué
 		creer_repertoire_vide(arguments[1],position_courante,disque);
 	}else{
-		printf("Chemin manquant\n");
+		help("mkdir");
 	}
 }
 
@@ -716,26 +717,33 @@ void notre_rmdir(char** arguments, int position, Disque* disque){
 	char* copie_chemin_inode;
 
 	//on vérifie si on a un chemin
-	if(arguments[1] != NULL){
+	if(arguments[1] != NULL && arguments[2] == NULL){
 		//on vérifie si le fichier existe
 		if(existe_fichier(arguments[1], position, disque)){
 			//on copie le chemin
 			copie_chemin_inode = strdup(arguments[1]);
 			//on récupère l'inode via la copie du chemin
 			inode = inode_via_chemin(copie_chemin_inode,position,disque);
-			//on vérifie si le fichier est un répertoire
-			if(disque->inode[inode].typefichier){
-				//on vérifie si le répertoire est vide
-				if(est_repertoire_vide(arguments[1], position, disque)){
-					//si toutes les conditions sont remplies on supprime le répertoire
-					supprimer_fichier(arguments[1], position, disque);
+
+			//verif si le chemin est bon
+			if (inode !=-1){
+
+				//on vérifie si le fichier est un répertoire
+				if(disque->inode[inode].typefichier){
+					//on vérifie si le répertoire est vide
+					if(est_repertoire_vide(arguments[1], position, disque)){
+						//si toutes les conditions sont remplies on supprime le répertoire
+						supprimer_fichier(arguments[1], position, disque);
+					}else{
+						//si le répertoire n'est pas vide on affiche une erreur
+						printf("Ce répertoire n'est pas vide\n");
+					}
 				}else{
-					//si le répertoire n'est pas vide on affiche une erreur
-					printf("Ce répertoire n'est pas vide\n");
+					//si le fichier n'est pas un répertoire on affiche un message d'erreur
+					printf("Ce fichier n'est pas un répertoire\n");
 				}
 			}else{
-				//si le fichier n'est pas un répertoire on affiche un message d'erreur
-				printf("Ce fichier n'est pas un répertoire\n");
+				printf("Le chemin saisie n'existe pas !\n");
 			}
 			//on libère la copie du chemin
 			free(copie_chemin_inode);
@@ -745,7 +753,7 @@ void notre_rmdir(char** arguments, int position, Disque* disque){
 			}
 	}else{
 		//si on a pas de chemin on affiche un message d'erreur
-		printf("Chemin manquant\n");
+		help("rmdir");
 	}
 }
 
@@ -757,20 +765,28 @@ void notre_rm(char** arguments, int position, Disque* disque){
 	char* copie_chemin_inode;
 
 	//on vérifie si on a un chemin
-	if(arguments[1] != NULL){
+	if(arguments[1] != NULL && arguments[2] == NULL){
 		//on vérifie si le fichier existe
 		if(existe_fichier(arguments[1],position,disque)){
 			//on copie le chemin
 			copie_chemin_inode = strdup(arguments[1]);
 			//on récupère l'inode via la copie du chemin
 			inode = inode_via_chemin(copie_chemin_inode, position, disque);
-			//on vérifie si le fichier est bien un simple fichier et non un répertoire
-			if(!disque->inode[inode].typefichier){
-				//si les conditions sont remplies on supprime le fichier
-				supprimer_fichier(arguments[1], position, disque);
+
+			//verif si le chemin est bon
+			if (inode !=-1){
+
+				//on vérifie si le fichier est bien un simple fichier et non un répertoire
+				if(!disque->inode[inode].typefichier){
+					//si les conditions sont remplies on supprime le fichier
+					supprimer_fichier(arguments[1], position, disque);
+				}else{
+					//si le fichier est un répertoire on affiche un message d'erreur 
+					printf("Ce fichier est un répertoire, utilisez rmdir\n");
+					help("rmdir");
+				}
 			}else{
-				//si le fichier est un répertoire on affiche un message d'erreur 
-				printf("Ce fichier est un répertoire, utilisez rmdir\n");
+				printf("Le chemin saisie n'existe pas !\n");
 			}
 			//on libère la copie du chemin
 			free(copie_chemin_inode);
@@ -780,7 +796,7 @@ void notre_rm(char** arguments, int position, Disque* disque){
 		}
 	}else{
 		//si on n'a pas de chemin on affiche une erreur
-		printf("Chemin manquant\n");
+		help("rm");
 	}
 }
 
@@ -806,22 +822,22 @@ void help(char* commande){
 	}else if (strcmp(commande,"mv") == 0){
 		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
   	
-  	}else if (strcmp(commande,"mkdir") == 0){
-		help_str = "\n***** Utilisation de ls ***** \nls : Affiche les fichiers du repertoire actuel \nls chemin_absolu : Affiche les fichiers du répertoire saisi \nls ./chemin_relatif : Affiche les fichiers du répertoire saisi \n***** Fin de l'aide *****";
+  	}else if (strcmp(commande,"rm") == 0){
+		help_str = "\n***** Utilisation de rm ***** \nrm chemin_absolu : Supprime le fichier du chemin saisi \nrm ./chemin_relatif : Supprime le fichier du chemin saisi \n***** Fin de l'aide *****";
 
   	}else if (strcmp(commande,"rmdir") == 0){
-		help_str = "\n***** Utilisation de cp ***** \ncp chemin_absolu_fichier1 chemin_absolu_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \ncp ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \n***** Fin de l'aide *****";
-
-	}else if (strcmp(commande,"rmf") == 0){
-		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
-  	
-  	}else if (strcmp(commande,"rmdir") == 0){
-		help_str = "\n***** Utilisation de cp ***** \ncp chemin_absolu_fichier1 chemin_absolu_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \ncp ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \n***** Fin de l'aide *****";
+		help_str = "\n***** Utilisation de rmdir ***** \nrmdir chemin_absolu_repertoire : Supprime le repertoire du chemin saisi s'il est vide\nrmdir ./chemin_relatif : Supprime le repertoire du chemin saisi s'il est vide \n***** Fin de l'aide *****";
 
 	}else if (strcmp(commande,"mkf") == 0){
+		help_str = "\n***** Utilisation de mkf ***** \nmkf chemin_absolu_fichier : Créer un fichier dans le chemin saisi s'il n'y en pas déja du même nom\nmkf ./chemin_relatif_fichier : Créer un fichier dans le chemin saisi s'il n'y en pas déja du même nom \n***** Fin de l'aide *****";
+  	
+  	}else if (strcmp(commande,"mkdir") == 0){
+		help_str = "\n***** Utilisation de mkdir ***** \nmkf chemin_absolu_repertoire : Créer un répertoire dans le chemin saisi s'il n'y en pas déja du même nom\nmkf ./chemin_relatif_repertoire : Créer un repertoire dans le chemin saisi s'il n'y en pas déja du même nom \n***** Fin de l'aide *****";
+
+	}else if (strcmp(commande,"") == 0){
 		help_str = "\n***** Utilisation de mv ***** \nmv chemin_absolu_fichier1 chemin_absolu_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \nmv ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Déplace le fichier1 dans le chemin du fichier2 et le renomme si le nom est different \n***** Fin de l'aide *****";
   	
-  	}else if (strcmp(commande,"rmdir") == 0){
+  	}else if (strcmp(commande,"") == 0){
 		help_str = "\n***** Utilisation de cp ***** \ncp chemin_absolu_fichier1 chemin_absolu_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \ncp ./chemin_relatif_fichier1 ./chemin_relatif_fichier2 : Créer une copie du fichier1 avec pour nom fichier2 \n***** Fin de l'aide *****";
 
 	}else if (strcmp(commande,"") == 0){
