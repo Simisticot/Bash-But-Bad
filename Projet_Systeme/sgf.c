@@ -761,7 +761,7 @@ int existe_fichier(char* chemin, int position, Disque* disque){
 		free(contenu_parent);
 		free(lignes);
 	}else{
-		printf("Le chemin saisie n'existe pas !\n");
+		printf("Le chemin saisi n'existe pas !\n");
 		existe = -1;
 	}
 	//on libère la mémoire

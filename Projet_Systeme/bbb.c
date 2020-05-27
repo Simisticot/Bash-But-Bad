@@ -585,7 +585,7 @@ void cd(char** arguments, int* position, Disque* disque){
 			    free(nom_fichier);
         }
 		}else{
-      printf("Le chemin saisie n'existe pas !\n");
+      printf("Le chemin saisi n'existe pas !\n");
 		}
 		free(copie_chemin);
    }else{
@@ -608,7 +608,7 @@ void ls(char** arguments, int position, Disque* disque){
 		if (inode !=-1){
 			afficher_noms(inode,disque);
 		}else{
-			printf("Le chemin saisie n'existe pas !\n");
+			printf("Le chemin saisi n'existe pas !\n");
 		}
 	}else{ //erreur sur la commande
 		help("ls");
@@ -742,7 +742,7 @@ void notre_rmdir(char** arguments, int position, Disque* disque){
 					printf("Ce fichier n'est pas un répertoire\n");
 				}
 			}else{
-				printf("Le chemin saisie n'existe pas !\n");
+				printf("Le chemin saisi n'existe pas !\n");
 			}
 			//on libère la copie du chemin
 			free(copie_chemin_inode);
@@ -785,7 +785,7 @@ void notre_rm(char** arguments, int position, Disque* disque){
 					help("rmdir");
 				}
 			}else{
-				printf("Le chemin saisie n'existe pas !\n");
+				printf("Le chemin saisi n'existe pas !\n");
 			}
 			//on libère la copie du chemin
 			free(copie_chemin_inode);
