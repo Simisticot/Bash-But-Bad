@@ -191,9 +191,14 @@ void cat(char** arguments, int position,Disque* disque){
 		//test
 		//ecrire_fichier(inode,"Bonjour et bienvenue sur \nle fichier",disque);
 		if (inode != -1){
-			char* contenu = contenu_fichier(inode,disque);
-			printf("%s\n",contenu);
-			free(contenu);
+			// si on essaie d'afficher le contenu d'un repertoire
+			if(!disque->inode[inode].typefichier){
+				char* contenu = contenu_fichier(inode,disque);
+				printf("%s\n",contenu);
+				free(contenu);
+			}else{
+				printf("Vous ne pouvez pas afficher le contenu d'un répertoire ! \n");
+			}
 		}else{
 			printf("Fichier introuvable\n");
 		}
@@ -315,18 +320,25 @@ void cp(char** arguments, int position, Disque* disque){
 
 				//verification du fichier source
 				if (inodesrc != -1){
-					char* contenu = contenu_fichier(inodesrc,disque);
 
-					//creation du fichier destination
-					int inodedest = creer_fichier(arguments[2], position, disque);
+					// si on essaie de copier un repertoire
+					if(!disque->inode[inodesrc].typefichier){
+						char* contenu = contenu_fichier(inodesrc,disque);
 
-					//copie dans le fichier dest
-					ecrire_fichier(inodedest,contenu,disque);
+						//creation du fichier destination
+						int inodedest = creer_fichier(arguments[2], position, disque);
 
-					char* contenudest = contenu_fichier(inodedest,disque);
-					free(contenudest);
+						//copie dans le fichier dest
+						ecrire_fichier(inodedest,contenu,disque);
 
-					free(contenu);
+						char* contenudest = contenu_fichier(inodedest,disque);
+						free(contenudest);
+
+						free(contenu);
+					}else{
+						printf("Vous ne pouvez pas copier un répertoire !\n");
+					}
+					
 				}else{
 					printf("Fichier source introuvable\n");
 				}
@@ -376,18 +388,23 @@ void mv(char** arguments, int position, Disque* disque){
 				int inodesrc = inode_via_chemin(copie_chemin_src, position, disque);
 				if (inodesrc != -1){
 
-					//recup contenu du fichier src
-					char* contenu = contenu_fichier(inodesrc,disque);
-					
-					//creation du fichier destination
-					int inodedest = creer_fichier(arguments[2], position, disque);
-					//copie dans le fichier dest
-					ecrire_fichier(inodedest,contenu,disque);
+					// si on essaie de déplacer un repertoire
+					if(!disque->inode[inodesrc].typefichier){
+						//recup contenu du fichier src
+						char* contenu = contenu_fichier(inodesrc,disque);
+						
+						//creation du fichier destination
+						int inodedest = creer_fichier(arguments[2], position, disque);
+						//copie dans le fichier dest
+						ecrire_fichier(inodedest,contenu,disque);
 
-					//suppression premier fichier
-					supprimer_fichier(arguments[1], position, disque);
-					
-					free(contenu);
+						//suppression premier fichier
+						supprimer_fichier(arguments[1], position, disque);
+						
+						free(contenu);
+					}else{
+						printf("Vous ne pouvez pas déplacer un repertoire !\n");
+					}
 				}else{
 					printf("Fichier source introuvable\n");
 				}
@@ -588,6 +605,7 @@ void cd(char** arguments, int* position, Disque* disque){
         }
 		}else{
       printf("Le chemin saisi n'existe pas !\n");
+      help("cd");
 		}
 		free(copie_chemin);
    }else{
