@@ -632,14 +632,15 @@ void creer_fichier_vide(char* chemin, int position, Disque* disque){
 	//espace à insérer dans le premier bloc du fichier
 	char espace[] = " ";
 	//on vérifie que le fichier n'existe pas déjà
-	if(!existe_fichier(chemin,position,disque)){
+	int fichier_existant = existe_fichier(chemin,position,disque);
+	if(fichier_existant == 0){
 		//on crée le fichier et on conserve l'inode attribué
 		inode = creer_fichier(chemin, position,disque);
 		//on écrit un espace dans le premier bloc du fichier, un bloc entièrement vide peut causer des comportements inatendus si on essaye de le lire ou d'y ajouter du texte
 		ecrire_fichier(inode,espace,disque);
 		//on indique qu'il s'agit d'un simple fichier
 		disque->inode[inode].typefichier = 0;
-	}else{
+	}else if (fichier_existant != -1){
 		//on affiche une erreur si on fichier du même nom existe au même endroit
 		printf("Un fichier du même nom existe déjà\n");
 	}
@@ -663,7 +664,8 @@ void creer_repertoire_vide(char* chemin, int position, Disque* disque){
 	char* copie_chemin_inode_parent;
 
 	//on vérifie si un fichier du même nom existe au même endroit
-	if(!existe_fichier(chemin,position,disque)){
+	int fichier_existant = existe_fichier(chemin,position,disque);
+	if(fichier_existant == 0){
 
 		//on copie le chemin
 		copie_chemin_inode_parent = strdup(chemin);
@@ -685,7 +687,8 @@ void creer_repertoire_vide(char* chemin, int position, Disque* disque){
 		ecrire_fichier(inode,ligne_parent,disque);
 		//on libère la mémoire
 		free(copie_chemin_inode_parent);
-	}else{
+
+	}else if (fichier_existant != -1){
 		//si un fichier du même nom existe on affiche une erreur
 		printf("Un fichier du même nom existe déjà\n");
 	}
@@ -733,29 +736,36 @@ int existe_fichier(char* chemin, int position, Disque* disque){
 	nom_fichier = nom_fichier_via_chemin(copie_chemin_nom);
 	inode_parent = inode_parent_via_chemin(copie_chemin_inode_parent, position, disque);
 	
-	//on récupère le contenu du parent
-	contenu_parent = contenu_fichier(inode_parent,disque);
+	//verif chemin
+	if (inode_parent != -1){
 
-	//on découpe le contenu du parent en lignes
-	lignes = decouper(contenu_parent,SGF_DELIMITEURS_REPERTOIRE);
+		//on récupère le contenu du parent
+		contenu_parent = contenu_fichier(inode_parent,disque);
 
-	//on parcours les lignes du parent pour chercher le nom
-	while(lignes[i] != NULL){
-		//on découpe chaque ligne en champs
-		donnees = decouper(lignes[i],SGF_DELIMITEURS_LIGNE_REPERTOIRE);
-		if(!strcmp(donnees[0],nom_fichier)){
-			//si on trouve le nom on passe existe à vrai
-			existe = 1;
+		//on découpe le contenu du parent en lignes
+		lignes = decouper(contenu_parent,SGF_DELIMITEURS_REPERTOIRE);
+
+		//on parcours les lignes du parent pour chercher le nom
+		while(lignes[i] != NULL){
+			//on découpe chaque ligne en champs
+			donnees = decouper(lignes[i],SGF_DELIMITEURS_LIGNE_REPERTOIRE);
+			if(!strcmp(donnees[0],nom_fichier)){
+				//si on trouve le nom on passe existe à vrai
+				existe = 1;
+			}
+			i++;
+			//on libère les champs à la fin de chaque itération
+			free(donnees);
 		}
-		i++;
-		//on libère les champs à la fin de chaque itération
-		free(donnees);
-	}
 
+		free(contenu_parent);
+		free(lignes);
+	}else{
+		printf("Le chemin saisie n'existe pas !\n");
+		existe = -1;
+	}
 	//on libère la mémoire
 	free(nom_fichier);
-	free(contenu_parent);
-	free(lignes);
 	free(copie_chemin_nom);
 	free(copie_chemin_inode_parent);
 	return existe;
