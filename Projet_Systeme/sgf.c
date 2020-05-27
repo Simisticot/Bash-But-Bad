@@ -56,10 +56,6 @@ void charger(Disque* disque){
 
 //intialisation du disque dur
 void initialisation(Disque* disque){
-	//chemin et contenu temporaire pour tests
-	char chemin_cc[] = "/cc";
-	char contenu_cc[] = "hello\0";
-	int inode_cc;
 	//on formatte le disque
 	formatter(disque);
 	//on attribue le bloc 0 à l'inode 0
@@ -68,10 +64,7 @@ void initialisation(Disque* disque){
 	disque->inode[0].utilise = 1;
 	//on signale que l'inode 0 est un répertoire
 	disque->inode[0].typefichier = 1;
-	//on crée notre fichier de test
-	inode_cc = creer_fichier(chemin_cc,0,disque);
-	disque->inode[inode_cc].typefichier = 0;
-	ecrire_fichier(inode_cc,contenu_cc,disque);
+	disque->inode[0].liens++;
 }
 
 //formate le disque
@@ -85,7 +78,10 @@ void formatter(Disque* disque){
 		for (j = 0; j < 30; j++){
 			//on passe tous les blocs utilises à -1 (les  fichiers n'existent pas il n'utilisent donc aucun bloc)
 			disque->inode[i].blocutilise[j] = -1;
+			//on indique pour chaque inode qu'il n'est pas utilisé
 			disque->inode[i].utilise = 0;
+			//on indique pour chaque inode qu'il y a 0 liens vers son contenu
+			disque->inode[i].liens = 0;
 		}
 	}
 	for(i = 0; i < 30; i++){
@@ -504,6 +500,8 @@ int creer_fichier(char* chemin, int position_courante, Disque* disque){
 	attribuer_bloc(inode,premier_bloc,disque);
 	//on indique que l'inode est désormais utilisé
 	disque->inode[inode].utilise = 1;
+	//on incrémente de 1 le nombre de liens pointant vers le fichier
+	disque->inode[inode].liens++;
 
 	//on coupe le nom du fichier 
 	nom_fichier = nom_fichier_via_chemin(chemin);
@@ -519,7 +517,7 @@ int creer_fichier(char* chemin, int position_courante, Disque* disque){
 	//on compose la ligne de données à placer dans le parent
 	sprintf(ligne_fichier,"%s;%d\n",nom_fichier,inode);
 	//on ajoute la ligne au parent
-	ajouter_fichier(inode_parent,ligne_fichier,disque); 
+	ajouter_fichier(inode_parent,ligne_fichier,disque);
 
 	//on libère le nom du fichier et la copie du chemin (tous les deux alloués par strdup)
 	free(nom_fichier);
@@ -569,12 +567,17 @@ void supprimer_fichier(char* chemin, int position_courante, Disque* disque){
 	inode = inode_via_chemin(chemin, position_courante, disque);
 	nom_fichier = nom_fichier_via_chemin(copie_chemin_nom_fichier);
 	inode_parent = inode_parent_via_chemin(copie_chemin_inode_parent, position_courante,disque);
-	//on efface le contenu du fichier
-	effacer_fichier(inode,disque);
-	//on libère le premier bloc et l'inode
-	disque->bloc[disque->inode[inode].blocutilise[0]].occupe = 0;
-	disque->inode[inode].utilise = 0;
-	disque->inode[inode].blocutilise[0] = -1;
+	//on décrémente le nombre de liens vers le fichier de 1
+	disque->inode[inode].liens--;
+	if(disque->inode[inode].liens == 0){
+		//si il ne reste aucun lien pointant vers le fichier
+		//on efface le contenu du fichier
+		effacer_fichier(inode,disque);
+		//on libère le premier bloc et l'inode
+		disque->bloc[disque->inode[inode].blocutilise[0]].occupe = 0;
+		disque->inode[inode].utilise = 0;
+		disque->inode[inode].blocutilise[0] = -1;
+	}
 	//on retire le fichier du répertoire parent
 	retirer_ligne_repertoire(nom_fichier,inode_parent,disque);
 
@@ -815,4 +818,43 @@ int est_repertoire_vide(char* chemin, int position, Disque* disque){
 
 	//on renvoie vide
 	return vide;
+}
+
+//crée un lien physique vers le fichier indiqué, au chemin indiqué
+void creer_lien(char* chemin_cible, char* chemin_lien, int position, Disque* disque){
+	//inode vers lequel on veut pointer
+	int inode;
+	//inode du parent du lien à créer
+	int inode_parent_dest;
+	//nom du lien
+	char* nom_fichier;
+	//copies du chemin
+	char* copie_chemin_inode_parent_dest;
+	char* copie_chemin_nom_fichier;
+	char* copie_chemin_inode_cible;
+	//ligne décrivant le lien
+	char ligne_fichier[SGF_TAILLE_LIGNE_REPERTOIRE];
+
+	//on crée les copies du chemin
+	copie_chemin_inode_parent_dest = strdup(chemin_lien);
+	copie_chemin_nom_fichier = strdup(chemin_lien);
+	copie_chemin_inode_cible = strdup(chemin_cible);
+
+	//on obtient les inodes et le nom du lien
+	inode = inode_via_chemin(copie_chemin_inode_cible,position,disque);
+	inode_parent_dest = inode_parent_via_chemin(copie_chemin_inode_parent_dest,position,disque);
+	nom_fichier = nom_fichier_via_chemin(copie_chemin_nom_fichier);
+
+	disque->inode[inode].liens++;
+
+	//on compose la ligne décrivant le lien
+	sprintf(ligne_fichier,"%s;%d\n",nom_fichier,inode);
+	//on insère la ligne décrivant le lien dans le parent
+	ajouter_fichier(inode_parent_dest,ligne_fichier,disque);
+
+	//on libère la mémoire
+	free(nom_fichier);
+	free(copie_chemin_inode_parent_dest);
+	free(copie_chemin_nom_fichier);
+	free(copie_chemin_inode_cible);
 }

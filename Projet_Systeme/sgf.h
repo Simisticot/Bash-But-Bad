@@ -26,6 +26,8 @@ typedef struct infoinode{
 	int blocutilise[30];
 	//indique si l'inode est utilisé, 0 pour non et 1 pour oui
 	int utilise;
+	//nombre de liens vers ce fichier, si il tombe à 0 on supprime le contenu
+	int liens;
 } Infoinode;
 
 //structure contenant le contenu d'un bloc
@@ -106,8 +108,11 @@ void creer_fichier_vide(char* chemin, int position, Disque* disque);
 //crée un répertoire vide
 void creer_repertoire_vide(char* chemin, int position, Disque* disque);
 
-//vérifie si un fichier existe via son chemin, 
+//vérifie si un fichier existe via son chemin, -1 si le parent du fichier n'existe pas, 0 si le fichier n'existe pas et 1 si le fichier existe
 int existe_fichier(char* chemin, int position, Disque* disque);
 
 //vérifie si un répertoire est vide via son chemin
 int est_repertoire_vide(char* chemin, int position, Disque* disque);
+
+//crée un lien physique vers un fichier via son chemin et le chemin du lien à créer
+void creer_lien(char* chemin_cible, char* chemin_lien, int position, Disque* disque);

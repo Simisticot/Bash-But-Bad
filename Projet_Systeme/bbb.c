@@ -282,8 +282,10 @@ void bbb_execution(char** arguments,int* position,Disque* disque){
 		df(arguments,disque);
 	}else if (strcmp(arguments[0],"clear") == 0){
 		clear();
-	//aucune commande
+	}else if (strcmp(arguments[0],"ln") == 0){
+		notre_ln(arguments,*position,disque);
 	}else{
+		//aucune commande
 		printf("Cette commande n'existe pas\n");
 	}
 }
@@ -718,7 +720,7 @@ void notre_rmdir(char** arguments, int position, Disque* disque){
 	//on vérifie si on a un chemin
 	if(arguments[1] != NULL && arguments[2] == NULL){
 		//on vérifie si le fichier existe
-		if(existe_fichier(arguments[1], position, disque)){
+		if(existe_fichier(arguments[1], position, disque) == 1){
 			//on copie le chemin
 			copie_chemin_inode = strdup(arguments[1]);
 			//on récupère l'inode via la copie du chemin
@@ -766,7 +768,7 @@ void notre_rm(char** arguments, int position, Disque* disque){
 	//on vérifie si on a un chemin
 	if(arguments[1] != NULL && arguments[2] == NULL){
 		//on vérifie si le fichier existe
-		if(existe_fichier(arguments[1],position,disque)){
+		if(existe_fichier(arguments[1],position,disque) == 1){
 			//on copie le chemin
 			copie_chemin_inode = strdup(arguments[1]);
 			//on récupère l'inode via la copie du chemin
@@ -832,7 +834,29 @@ void help(char* commande){
 
   	}else if (strcmp(commande,"mkdir") == 0){
 		help_str = "\n***** Utilisation de mkdir ***** \nmkdir chemin_absolu_repertoire : Créer un répertoire dans le chemin saisi s'il n'y en pas déja du même nom\nmkdir ./chemin_relatif_repertoire : Créer un repertoire dans le chemin saisi s'il n'y en pas déja du même nom \n***** Fin de l'aide *****";
-
+	}else if (strcmp(commande,"ln") == 0){
+		help_str = "\n***** Utilisation de ln ***** \nln chemin_absolu_cible chemin_absolu_lien : Crée un lien physique vers la cible au chemin indiqué\nln ./chemin_relatif_cible ./chemin_relatif_lien : Crée un lien physique vers la cible au chemin indiqué\n***** Fin de l'aide *****";
 	}
   	printf("%s\n",help_str);
+}
+
+//commande ln
+void notre_ln(char** arguments, int position, Disque* disque){
+	//on vérifie le nombre d'arguments
+	if(arguments[2] != NULL && arguments[3] == NULL){
+		//on vérifie l'existence du fichier vers lequel pointer
+		if(existe_fichier(arguments[1], position, disque)==1){
+			//on vérifie la validité du chemin du lien à créer
+			if(existe_fichier(arguments[2], position, disque)==0){
+				//on crée le lien
+				creer_lien(arguments[1],arguments[2],position,disque);
+			}else{
+				printf("Le répertoire de destination n'existe pas\n");
+			}
+		}else{
+			printf("Ce fichier n'existe pas\n");
+		}		
+	}else{
+		help("ln");
+	}
 }
