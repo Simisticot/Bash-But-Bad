@@ -49,6 +49,8 @@ void notre_rmdir(char** arguments, int position, Disque* disque);
 void notre_rm(char** arguments, int position, Disque* disque);
 //commande df
 void df(char** arguments, Disque* disque);
+//commande ln
+void notre_ln(char** arguments, int position, Disque* disque);
 //clear
 void clear();
 //aide
