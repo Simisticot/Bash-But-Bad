@@ -21,7 +21,7 @@ char* suppr_guillemet(char* chaine);
 void bbb_loop(Disque* disque);
 
 //execution de commande
-void bbb_execution(char** arguments,int* position, Disque* disque);
+void bbb_execution(char** arguments,int* position, int* execution, Disque* disque);
 
 //affiche les noms des fichiers contenus dans un répertoire via l'inode du répertoire
 void afficher_noms(int inode_repertoire, Disque* disque);

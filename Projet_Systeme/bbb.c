@@ -262,7 +262,7 @@ void echo(char** arguments, int position, Disque* disque){
 }
 
 
-void bbb_execution(char** arguments,int* position,Disque* disque){	
+void bbb_execution(char** arguments,int* position,int* execution,Disque* disque){	
 	if (strcmp(arguments[0],"echo") == 0){
 		echo(arguments, *position, disque);
 	} else if (strcmp(arguments[0],"cat") == 0){
@@ -289,6 +289,8 @@ void bbb_execution(char** arguments,int* position,Disque* disque){
 		clear();
 	}else if (strcmp(arguments[0],"ln") == 0){
 		notre_ln(arguments,*position,disque);
+	}else if (strcmp(arguments[0],"exit") == 0){
+		*execution = 0;
 	}else{
 		//aucune commande
 		printf("Cette commande n'existe pas\n");
@@ -435,10 +437,12 @@ void bbb_loop(Disque* disque){
 	char** arguments;
 	int i;
 	int position;
+	int execution;
 	position = 0;
+	execution = 1;
 	
 
-	while(1){
+	while(execution){
 		i=0;
 		//affichage du curseur
 		printf("[bbb]");
@@ -456,7 +460,7 @@ void bbb_loop(Disque* disque){
 		}*/
 
 		//execution de la commande
-		bbb_execution(arguments,&position,disque);
+		bbb_execution(arguments,&position,&execution,disque);
 		
 		free(entree);
 		i=0;
